@@ -1,6 +1,7 @@
 import argparse
 import json
 import cv2
+from xml.dom.minidom import Document
 __author__ = 'yuqj'
 __copyright__ = 'Copyright (c) 2018, deepano'
 __email__ = 'yuqj@deepano.com'
@@ -9,23 +10,26 @@ __license__ = 'DEEPANO'
 
 anno_root = "../../dataset/car_person_data/bdd100k/Annotations/"
 label_train_root = "../../dataset/car_person_data/bdd100k/labels/train/"
-label_test_root = "../../dataset/car_person_data/bdd100k/labels/test/"
+label_val_root = "../../dataset/car_person_data/bdd100k/labels/val/"
 anno_image = "../../dataset/car_person_data/bdd100k/annoImage/"
 src_image_train_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/train/"
 src_image_val_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/val/"
 src_image_test_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/test/"
-label_json_file = ["../../dataset/car_person_data/bdd100k/labels/val/bdd100k_labels_images_train.json",
+label_json_file = ["../../dataset/car_person_data/bdd100k/labels/train/bdd100k_labels_images_train.json",
                    "../../dataset/car_person_data/bdd100k/labels/val/bdd100k_labels_images_val.json"]
+label_txt_root = [label_train_root, label_val_root]
 src_image_root = [src_image_train_root, src_image_val_root]
-category_label = ['parking sign', 'street light', 'traffic cone', 'traffic device', 'traffic light',
-                  'traffic sign', 'person', 'rider', 'bicycle', 'bus', 'car', 'caravan', 'motorcycle', 'trailer',
+category_label = ['traffic light','traffic sign', 'person', 'rider', 'bicycle', 'bus', 'car', 'caravan', 'motorcycle', 'trailer',
                   'train', 'truck']
+thread_hold = 40
 
 
 def parse_args():
     parse = argparse.ArgumentParser()
     parse.add_argument('label_path', type=str, help="this should be label json file")
     parse.add_argument('det_path', type=str, help="this should be label or annotation file path")
+    args = parse.parse_args()
+    return args
 
 
 def label2det(frames, src_image_, label_):
@@ -33,15 +37,62 @@ def label2det(frames, src_image_, label_):
     for frame in frames:
         image_file = frame['name']
         label_file = label_ + image_file.split('.')[0]+'.txt'
-        anno_xml_file = anno_root + frame['name']
+        anno_xml_file = anno_root + frame['name'].split('.')[0]+'.xml'
         anno_image_file = anno_image + frame['name']
         src_image_file = src_image_ + frame['name']
         if 1:
+            print("label_txt_file: ", label_file)
             print("anno_xml_file: ", anno_xml_file)
             print("anno_image_file: ", anno_image_file)
             print("src_image_file: ", src_image_file)
         srcImage = cv2.imread(src_image_file)
         label_w_file = open(label_file, 'w')
+        # xml_file define
+        doc = Document()
+        annotation = doc.createElement('annotation')  # annotation element
+        doc.appendChild(annotation)
+        folder = doc.createElement('folder')
+        folder_name = doc.createTextNode('wider_face')
+        folder.appendChild(folder_name)
+        annotation.appendChild(folder)
+        filename_node = doc.createElement('filename')
+        filename_name = doc.createTextNode(src_image_file)
+        filename_node.appendChild(filename_name)
+        annotation.appendChild(filename_node)
+        source = doc.createElement('source')  # source sub_element
+        annotation.appendChild(source)
+        database = doc.createElement('database')
+        database.appendChild(doc.createTextNode('bbd Database'))
+        annotation.appendChild(database)
+        annotation_s = doc.createElement('annotation')
+        annotation_s.appendChild(doc.createTextNode('PASCAL VOC2007'))
+        source.appendChild(annotation_s)
+        image = doc.createElement('image')
+        image.appendChild(doc.createTextNode('flick'))
+        source.appendChild(image)
+        flickrid = doc.createElement('flickid')
+        flickrid.appendChild(doc.createTextNode('-1'))
+        source.appendChild(flickrid)
+        owner = doc.createElement('owner')  # company element
+        annotation.appendChild(owner)
+        flickrid_o = doc.createElement('flickid')
+        flickrid_o.appendChild(doc.createTextNode('deepano'))
+        owner.appendChild(flickrid_o)
+        name_o = doc.createElement('name')
+        name_o.appendChild(doc.createTextNode('deepano'))
+        owner.appendChild(name_o)
+        size = doc.createElement('size')  # img size info element
+        annotation.appendChild(size)
+        width = doc.createElement('width')
+        width.appendChild(doc.createTextNode(str(srcImage.shape[1])))
+        height = doc.createElement('height')
+        height.appendChild(doc.createTextNode(str(srcImage.shape[0])))
+        depth = doc.createElement('depth')
+        depth.appendChild(doc.createTextNode(str(srcImage.shape[2])))
+        size.appendChild(width)
+        size.appendChild(height)
+        size.appendChild(depth)
+
         for label in frame['labels']:
             if 'box2d' not in label:
                 continue
@@ -67,19 +118,50 @@ def label2det(frames, src_image_, label_):
             x2 = xy['x2']
             y2 = xy['y2']
             # labels.txt
-            label_content = category_index + ' ' + x1 + ' ' + x2 + ' ' + y1 + ' ' + y2 +'\n'
-            label_w_file.write(label_content)
+            label_content = str(category_index) + ' ' + str(x1) + ' ' + str(x2) + ' ' + str(y1) + ' ' + str(y2) +'\n'
+            label_w_file.writelines(label_content)
             # anno image
             cv2.rectangle(srcImage, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0))
-            cv2.putText(srcImage, category, (int(x1), int(y1)), cv2.FONT_HERSHEY_COMPLEX, 6, (0, 0, 255), 25)
+            cv2.putText(srcImage, category, (int(x1), int(y1)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)
             # anno_xml_file
-            
+            objects = doc.createElement('objects')
+            annotation.appendChild(objects)
+            object_name = doc.createElement('name')
+            object_name.appendChild(doc.createTextNode(category))
+            objects.appendChild(object_name)
+            boundbox = doc.createElement('boundingbox')  # boundbox
+            objects.appendChild(boundbox)
+            xmin = doc.createElement('xmin')
+            xmin.appendChild(doc.createTextNode(str(x1)))
+            boundbox.appendChild(xmin)
+            ymin = doc.createElement('ymin')
+            ymin.appendChild(doc.createTextNode(str(y1)))
+            boundbox.appendChild(ymin)
+            xmax = doc.createElement('xmax')
+            xmax.appendChild(doc.createTextNode(str(x2)))
+            boundbox.appendChild(xmax)
+            ymax = doc.createElement('ymax')
+            ymax.appendChild(doc.createTextNode(str(y2)))
+            boundbox.appendChild(ymax)
             boxes.append(box)
         cv2.imwrite(anno_image_file, srcImage)
         label_w_file.close()
+        #xml file
+        xml_file = open(anno_xml_file, 'w')
+        xml_file.write(doc.toprettyxml(indent=''))
+        xml_file.close()
     return boxes
 
 
-def convert_labels(label_path, det_path):
-    frames = json.load(open(label_path, 'r'))
-    det = label2det(frames)
+def convert_labels(label_json_path, src_img_, label_):
+    frames = json.load(open(label_json_path, 'r'))
+    det = label2det(frames, src_img_, label_)
+
+
+def main():
+    for ii in range(len(src_image_root)):
+        convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
+
+
+if __name__ == '__main__':
+    main()

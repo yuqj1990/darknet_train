@@ -1,6 +1,8 @@
 import argparse
 import json
+import os
 import cv2
+import random
 from xml.dom.minidom import Document
 __author__ = 'yuqj'
 __copyright__ = 'Copyright (c) 2018, deepano'
@@ -153,14 +155,50 @@ def label2det(frames, src_image_, label_):
     return boxes
 
 
+# this api get the full image path from label txt file
+def write_train_val_set(src_image_root, label_file_root, trainset_root):
+    # src_image_root: '/home/deepano/workspace/dataset/car_person_data/bdd100k/JPEGImages/100k/'
+    # label_file_root: '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/'
+    # trainset_root: '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/'
+    dir_forder = ['train', 'val']
+    for forder in dir_forder:
+        label_folder = label_file_root + forder + '/'
+        set_file = trainset_root + forder + '.txt'
+        set_file_ = open(set_file, 'w')
+        filelist = os.listdir(label_folder)
+        for file in filelist:
+            img_file_path = src_image_root + forder + '/' + file + '\n'
+            set_file_.writelines(img_file_path)
+            print(img_file_path)
+        set_file_.close()
+
+
+def shuffle_file(filename):
+    f = open(filename, 'r+')
+    lines = f.readlines()
+    random.shuffle(lines)
+    f.seek(0)
+    f.truncate()
+    f.writelines(lines)
+    f.close()
+
+
+
 def convert_labels(label_json_path, src_img_, label_):
     frames = json.load(open(label_json_path, 'r'))
     det = label2det(frames, src_img_, label_)
 
 
 def main():
-    for ii in range(len(src_image_root)):
-        convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
+    # for ii in range(len(src_image_root)):
+    #   convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
+    write_train_val_set('/home/deepano/workspace/dataset/car_person_data/bdd100k/JPEGImages/100k/',
+                        '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/',
+                        '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/')
+    dir_forder = ['train', 'val']
+    for dir in dir_forder:
+        file = '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/' + dir + '.txt'
+        shuffle_file(file)
 
 
 if __name__ == '__main__':

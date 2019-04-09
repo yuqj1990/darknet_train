@@ -11,20 +11,20 @@ __license__ = 'DEEPANO'
 
 
 anno_root = "../../dataset/car_person_data/bdd100k/Annotations/"
-label_train_root = "../../dataset/car_person_data/bdd100k/labels/train/"
-label_val_root = "../../dataset/car_person_data/bdd100k/labels/val/"
+label_train_root = "../../dataset/car_person_data/bdd100k/labels/100k/train/"
+label_val_root = "../../dataset/car_person_data/bdd100k/labels/100k/val/"
 anno_image = "../../dataset/car_person_data/bdd100k/annoImage/"
 src_image_train_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/train/"
 src_image_val_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/val/"
 src_image_test_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/test/"
-label_json_file = ["../../dataset/car_person_data/bdd100k/labels/train/bdd100k_labels_images_train.json",
-                   "../../dataset/car_person_data/bdd100k/labels/val/bdd100k_labels_images_val.json"]
+label_json_file = ["../../dataset/car_person_data/bdd100k/labels/100k/train/bdd100k_labels_images_train.json",
+                   "../../dataset/car_person_data/bdd100k/labels/100k/val/bdd100k_labels_images_val.json"]
 label_txt_root = [label_train_root, label_val_root]
 src_image_root = [src_image_train_root, src_image_val_root]
 category_label = ['traffic light','traffic sign', 'person', 'rider', 'bicycle', 'bus', 'car', 'caravan', 'motorcycle', 'trailer',
                   'train', 'truck']
 thread_hold = 40
-
+clusterLabelFile = '/home/deepano/workspace/dataset/car_person_data/bdd100k/clusterlabelFile.txt'
 
 def parse_args():
     parse = argparse.ArgumentParser()
@@ -50,6 +50,7 @@ def convert(size, box):
 
 def label2det(frames, src_image_, label_):
     boxes = list()
+    classfy_file = open(clusterLabelFile, 'a+')
     for frame in frames:
         image_file = frame['name']
         label_file = label_ + image_file.split('.')[0]+'.txt'
@@ -108,7 +109,6 @@ def label2det(frames, src_image_, label_):
         size.appendChild(width)
         size.appendChild(height)
         size.appendChild(depth)
-
         for label in frame['labels']:
             if 'box2d' not in label:
                 continue
@@ -140,6 +140,7 @@ def label2det(frames, src_image_, label_):
             # labels.txt
             label_content = str(category_index) + " " + " ".join([str(a) for a in bb]) + '\n'
             label_w_file.writelines(label_content)
+            classfy_file.writelines(" " + " ".join([str(a) for a in bb])+ '\n')
             # anno image
             cv2.rectangle(srcImage, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0))
             cv2.putText(srcImage, category, (int(x1), int(y1)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)
@@ -170,6 +171,7 @@ def label2det(frames, src_image_, label_):
         xml_file = open(anno_xml_file, 'w')
         xml_file.write(doc.toprettyxml(indent=''))
         xml_file.close()
+    classfy_file.close()
     return boxes
 
 
@@ -207,10 +209,13 @@ def convert_labels(label_json_path, src_img_, label_):
 
 
 def main():
-    #for ii in range(len(src_image_root)):
-     #   convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
+    classfy_ = open(clusterLabelFile, "w")
+    classfy_.truncate()
+    classfy_.close()
+    for ii in range(len(src_image_root)):
+        convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
     write_train_val_set('/home/deepano/workspace/dataset/car_person_data/bdd100k/JPEGImages/100k/',
-                       '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/',
+                       '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/100k/',
                        '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/')
     dir_forder = ['train', 'val']
     for dir in dir_forder:

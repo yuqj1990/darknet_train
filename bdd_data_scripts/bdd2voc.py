@@ -34,6 +34,20 @@ def parse_args():
     return args
 
 
+def convert(size, box):
+    dw = 1./(size[0])
+    dh = 1./(size[1])
+    x = (box[0] + box[1])/2.0 - 1
+    y = (box[2] + box[3])/2.0 - 1
+    w = box[1] - box[0]
+    h = box[3] - box[2]
+    x = x*dw
+    w = w*dw
+    y = y*dh
+    h = h*dh
+    return (x,y,w,h)
+
+
 def label2det(frames, src_image_, label_):
     boxes = list()
     for frame in frames:
@@ -115,12 +129,16 @@ def label2det(frames, src_image_, label_):
                    'bbox': [xy['x1'], xy['y1'], xy['x2'], xy['y2']],
                    'score': 1}
             category = label["category"]
-            x1 = xy['x1']
-            y1 = xy['y1']
-            x2 = xy['x2']
-            y2 = xy['y2']
+            x1 = float(xy['x1'])
+            y1 = float(xy['y1'])
+            x2 = float(xy['x2'])
+            y2 = float(xy['y2'])
+            w = srcImage.shape[1]
+            h = srcImage.shape[0]
+            b = (x1, y1, x2, y2)
+            bb = convert((w, h), b)
             # labels.txt
-            label_content = str(category_index) + ' ' + str(x1) + ' ' + str(x2) + ' ' + str(y1) + ' ' + str(y2) +'\n'
+            label_content = str(category_index) + " " + " ".join([str(a) for a in bb]) + '\n'
             label_w_file.writelines(label_content)
             # anno image
             cv2.rectangle(srcImage, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0))
@@ -167,7 +185,7 @@ def write_train_val_set(src_image_root, label_file_root, trainset_root):
         set_file_ = open(set_file, 'w')
         filelist = os.listdir(label_folder)
         for file in filelist:
-            img_file_path = src_image_root + forder + '/' + file + '\n'
+            img_file_path = src_image_root + forder + '/' + file.split('.txt')[0] + '.jpg' + '\n'
             set_file_.writelines(img_file_path)
             print(img_file_path)
         set_file_.close()
@@ -183,22 +201,21 @@ def shuffle_file(filename):
     f.close()
 
 
-
 def convert_labels(label_json_path, src_img_, label_):
     frames = json.load(open(label_json_path, 'r'))
     det = label2det(frames, src_img_, label_)
 
 
 def main():
-    # for ii in range(len(src_image_root)):
-    #   convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
+    #for ii in range(len(src_image_root)):
+     #   convert_labels(label_json_file[ii], src_image_root[ii], label_txt_root[ii])
     write_train_val_set('/home/deepano/workspace/dataset/car_person_data/bdd100k/JPEGImages/100k/',
-                        '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/',
-                        '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/')
+                       '/home/deepano/workspace/dataset/car_person_data/bdd100k/labels/',
+                       '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/')
     dir_forder = ['train', 'val']
     for dir in dir_forder:
-        file = '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/' + dir + '.txt'
-        shuffle_file(file)
+       file = '/home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/' + dir + '.txt'
+       shuffle_file(file)
 
 
 if __name__ == '__main__':

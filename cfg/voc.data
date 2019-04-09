@@ -1,6 +1,6 @@
-classes= 20
-train  = /home/pjreddie/data/voc/train.txt
-valid  = /home/pjreddie/data/voc/2007_test.txt
+classes= 10
+train  = /home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/train.txt
+valid  = /home/deepano/workspace/dataset/car_person_data/bdd100k/ImageSets/Main/val.txt
 names = data/voc.names
 backup = backup
 

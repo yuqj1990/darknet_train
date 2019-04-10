@@ -24,7 +24,7 @@ src_image_root = [src_image_train_root, src_image_val_root]
 category_label = ['traffic light','traffic sign', 'person', 'rider', 'bicycle', 'bus', 'car', 'caravan', 'motorcycle', 'trailer',
                   'train', 'truck']
 thread_hold = 40
-clusterLabelFile = '/home/deepano/workspace/dataset/car_person_data/bdd100k/clusterlabelFile.txt'
+clusterLabelFile = '../../dataset/car_person_data/bdd100k/clusterlabelFile.txt'
 
 def parse_args():
     parse = argparse.ArgumentParser()
@@ -37,10 +37,10 @@ def parse_args():
 def convert(size, box):
     dw = 1./(size[0])
     dh = 1./(size[1])
-    x = (box[0] + box[1])/2.0 - 1
-    y = (box[2] + box[3])/2.0 - 1
-    w = box[1] - box[0]
-    h = box[3] - box[2]
+    x = (box[0] + box[2])/2.0
+    y = (box[1] + box[3])/2.0
+    w = box[2] - box[0]
+    h = box[3] - box[1]
     x = x*dw
     w = w*dw
     y = y*dh
@@ -140,7 +140,7 @@ def label2det(frames, src_image_, label_):
             # labels.txt
             label_content = str(category_index) + " " + " ".join([str(a) for a in bb]) + '\n'
             label_w_file.writelines(label_content)
-            classfy_file.writelines(" " + " ".join([str(a) for a in bb])+ '\n')
+            classfy_file.writelines(" ".join([str(a) for a in bb])+ '\n')
             # anno image
             cv2.rectangle(srcImage, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0))
             cv2.putText(srcImage, category, (int(x1), int(y1)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)

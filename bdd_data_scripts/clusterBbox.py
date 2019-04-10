@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 
-classfyFile = "../../dataset/facedata/wider_face/wider_face_classfy_distance_data.txt"
+classfyFile = '../../dataset/car_person_data/bdd100k/clusterlabelFile.txt'
 
 # 定义Box类，描述bounding box的坐标
 class Box():
@@ -53,7 +53,7 @@ def box_union(a, b):
 # a和b都是Box类型实例
 # 返回值是box a 和box b 的iou
 def box_iou(a, b):
-    return box_intersection(a, b) / box_union(a, b)
+    return box_intersection(a, b) / (box_union(a, b)+0.00005)
     
 
 def avg_iou(boxes, centroids):
@@ -239,9 +239,9 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
 
 def main():
 	if 1:
-		n_anchors = 7
+		n_anchors = 9
 		loss_convergence = 1e-2
-		grid_size = 300
+		grid_size = 13
 		iterations_num = 10000
 		plus = 1
 		compute_centroids(classfyFile,n_anchors,loss_convergence,grid_size,iterations_num,plus)

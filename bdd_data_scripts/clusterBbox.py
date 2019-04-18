@@ -1,7 +1,7 @@
 # -*- coding:UTF-8 -*-
 from __future__ import division
 import numpy as np
-
+import gc
 
 classfyFile = '../../dataset/car_person_data/bdd100k/clusterlabelFile.txt'
 
@@ -219,13 +219,13 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
         centroids, groups, loss, distance_all = do_kmeans(n_anchors, boxes, centroids)
         assignments = np.argmin(distance_all, axis=1)
         iterations = iterations + 1
-        print("~~~~~~~~~~~~~~~the %d times iterations~~~~~~~~~~~~~~~~~~~~~~~"%(iterations+1))
+        print("~~~~~~~~~~~~~~~the %d times iterations~~~~~~~~~~~~~~~~~~~~~~~"%(iterations))
         print("old_loss = %f, loss = %f" % (old_loss, loss))
-        #if abs(old_loss-loss) < loss_convergence or iterations > iterations_num:
-        if (assignments == prev_assignments).all() :
+        if abs(old_loss-loss) < loss_convergence or iterations > iterations_num:
+        #if (assignments == prev_assignments).all() :
             break
         old_loss = loss 
-        prev_assignments = assignments.copy()
+        #prev_assignments = assignments
     # print result
     ii=0
     for centroid in centroids:
@@ -239,7 +239,7 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
 
 def main():
 	if 1:
-		n_anchors = 9
+		n_anchors = 11
 		loss_convergence = 1e-2
 		grid_size = 416
 		iterations_num = 10000

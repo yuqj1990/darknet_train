@@ -545,15 +545,19 @@ void fill_network_boxes(network *net, int w, int h, float thresh, float hier, in
     for(j = 0; j < net->n; ++j){
         layer l = net->layers[j];
         if(l.type == YOLO){
+            printf("\nstart get_yolo_detections, l.w: %d, l.h : %d\n", l.w, l.h);
             int count = get_yolo_detections(l, w, h, net->w, net->h, thresh, map, relative, dets);
+
             dets += count;
         }
         if(l.type == REGION){
             get_region_detections(l, w, h, net->w, net->h, thresh, map, hier, relative, dets);
+            printf("get region detections\n");
             dets += l.w*l.h*l.n;
         }
         if(l.type == DETECTION){
             get_detection_detections(l, w, h, thresh, dets);
+            printf("get detection detections\n");
             dets += l.w*l.h*l.n;
         }
     }

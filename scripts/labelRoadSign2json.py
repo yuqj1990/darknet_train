@@ -43,6 +43,33 @@ def loadJsonfile(jsonFilepath, rootDir):
 	label_shapes = label_data['']
 
 
+def shapes_to_label(img_shape, shapes, label_name_to_value, type='class'):
+	assert type in ['class', 'instance']
+	cls = np.zeros(img_shape[:2], dtype=np.int32)
+	if type == 'instance':
+		ins = np.zeros(img_shape[:2], dtype=np.int32)
+		instance_names = ['_background_']
+	for shape in shapes:
+		points = shape['points']
+		label = shape['label']
+		shape_type = shape.get('shape_type', None)
+		if type == 'class':
+		    cls_name = label
+		elif type == 'instance':
+			cls_name = label.split('-')[0]
+			if label not in instance_names:
+				instance_names.append(label)
+			ins_id = instance_names.index(label)
+		cls_id = label_name_to_value[cls_name]
+		mask = shape_to_mask(img_shape[:2], points, shape_type)
+		cls[mask] = cls_id
+		if type == 'instance':
+			ins[mask] = ins_id
+
+	if type == 'instance':
+		return cls, ins
+	return cls
+
 def labelme_shapes_to_label(img_shape, shapes):
 	warnings.warn('labelme_shapes_to_label is deprecated, so please use shapes_to_label.')
 

@@ -256,18 +256,24 @@ void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, int neth
         new_h = neth;
         new_w = (w * neth)/h;
     }
+    printf("relative: %d, w: %d, h: %d, new_w: %d, new_h: %d, netw: %d, neth: %d\n", relative, w, h, new_w, new_h, netw, neth);
     for (i = 0; i < n; ++i){
         box b = dets[i].bbox;
+        printf("=================before====================\n");
+        printf("b.x: %f, b.y: %f, b.w: %f, b.h: %f, netw / new_w: %f, neth/new_h: %f\n", b.x, b.y, b.w, b.h, (float)netw/new_w, (float)neth/new_h);
         b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw); 
         b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth); 
         b.w *= (float)netw/new_w;
         b.h *= (float)neth/new_h;
+        printf("=================after====================\n");
+        printf("b.x: %f, b.y: %f, b.w: %f, b.h: %f, netw / new_w: %f, neth/new_h: %f\n", b.x, b.y, b.w, b.h, (float)netw/new_w, (float)neth/new_h);
         if(!relative){
             b.x *= w;
             b.w *= w;
             b.y *= h;
             b.h *= h;
         }
+        printf("b.x: %f, b.y: %f, b.w: %f, b.h: %f, netw / new_w: %f, neth/new_h: %f\n", b.x, b.y, b.w, b.h, (float)netw/new_w, (float)neth/new_h);
         dets[i].bbox = b;
     }
 }
@@ -327,6 +333,7 @@ int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh,
             float objectness = predictions[obj_index];
             if(objectness <= thresh) continue;
             int box_index  = entry_index(l, 0, n*l.w*l.h + i, 0);
+            printf("l.w : %d, l.h : %d, netw: %d, neth : %d \n", l.w, l.h, netw, neth);
             dets[count].bbox = get_yolo_box(predictions, l.biases, l.mask[n], box_index, col, row, l.w, l.h, netw, neth, l.w*l.h);
             dets[count].objectness = objectness;
             dets[count].classes = l.classes;

@@ -284,6 +284,9 @@ void draw_detections(image im, detection *dets, int num, float thresh, char **na
             int right = (b.x+b.w/2.)*im.w;
             int top   = (b.y-b.h/2.)*im.h;
             int bot   = (b.y+b.h/2.)*im.h;
+            //printf("b.x : %f b.y: %f b.w: %f b.h: %f\n", b.x, b.y, b.w, b.h);
+            //printf("image box, image height: %d, image width: %d, left: %d, right: %d, top: %d, bottom: %d \n",
+            //        im.h, im.w, left, right, top, bot);
 
             if(left < 0) left = 0;
             if(right > im.w-1) right = im.w-1;

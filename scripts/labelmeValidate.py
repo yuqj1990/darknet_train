@@ -13,11 +13,11 @@ def parse_args_augment():
 	return args
 
 
-annoImageDir = '../../dataset/roadSign/annoImage'
-rootDir = '../../dataset/roadSign'
-labelsDir = rootDir + '/labels'
 
-classflyFile = "./roadSign_classfly_distance_data.txt"
+rootDir = '../../dataset/roadSign'
+
+wrongLabeledfile_ = 'wrongfile'
+
 collectBoxData = True
 
 isSaveImglabeled = True
@@ -49,59 +49,37 @@ def convert(size, box):
 	return (x,y,w,h)
 
 
-def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, classflydataFile):
+def shapes_to_label(jsonfilePath, label_name_to_value, root):
 	label_data = json.load(open(jsonfilePath, 'r'))
 	imagePath = label_data['imagePath'].split('..\\')[-1]
+	print('image: %s, json: %s'%(imagePath.split('.jpg')[0], jsonfilePath.split('/')[-1].split('.json')[0]))
+	#assert imagePath.split('.jpg')[0] == jsonfilePath.split('/')[-1].split('.json')[0]
 	fullPath = os.path.abspath(root + '/frame/' + imagePath)
+	classfly_file = open(wrongLabeledfile_, 'a+')
 	print(fullPath)
 	img = cv2.imread(fullPath)
 	img_h = img.shape[0]
 	img_w = img.shape[1]
-	classfly_file = open(classflydataFile, 'a+')
 	label_shapes = label_data['shapes']
 	for shape in label_shapes:
 		label = shape['label']
 		if label != 'Sidewalk a' and label != 'Sidewalk b' and label != 'side walk B' and label != 'side walk A' and label != 'Side walk B':
-			label_file_ = open(labelfilePath, 'a+')
-			points = shape['points']
-			xmin = points[0][0]
-			ymin = points[0][1]
-			xmax = points[1][0]
-			ymax = points[1][1]
-			if isSaveImglabeled:
-				cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0), 3)
-			b = (xmin, xmax, ymin, ymax)
-			bb = convert((img_w, img_h), b)
-			if collectBoxData:
-				classfly_file.writelines(" ".join([str(a) for a in bb]) + '\n')
-			label_prefix = label.split(' ')
-			label_content = label_prefix[0] + ' ' + label_prefix[1]
-			#if label_content == 'Maximum speed' or label_content == 'Minimum speed' or label_content == "Maximum width":
-			#	continue
-			cls_id = label_name_to_value[label]
-			label_file_.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
-			label_file_.close()
-	if isSaveImglabeled:
-		if not os.path.exists(annoImageDir):
-			os.mkdir(annoImageDir)
-		labelImagePath = os.path.abspath(annoImageDir + '/' + imagePath)
-		cv2.imwrite(labelImagePath, img)
+			if label not in label_name_to_value:
+				classfly_file.write("jsonfile: " + jsonfilePath + ', wrong label: ' + label + '\n')
+			if imagePath.split('.jpg')[0] != jsonfilePath.split('/')[-1].split('.json')[0]:
+				classfly_file.write("jsonfile: " + jsonfilePath.split('/')[-1].split('.json')[0] + ',imagefile: ' + imagePath.split('.jpg')[0] + '\n')
 	classfly_file.close()
 
-
-def convert2labelFormat(jsonDir, labelDir, labelmapfile):
+def convert2labelFormat(jsonDir, labelmapfile):
 	classLabels = generatelabelSign(labelmapfile)
-	classfy_ = open(classflyFile, "w")
-	classfy_.truncate()
-	classfy_.close()
-	if not os.path.exists(labelDir):
-		os.mkdir(labelsDir)
+	n = 0
 	if yoloformat:
 		for json_file_ in os.listdir(jsonDir):
 			json_path = os.path.join(jsonDir, json_file_)
 			if os.path.isfile(json_path):
-				labelfilePath_ = labelDir + '/' + json_file_.split('.json')[0]
-				shapes_to_label(json_path, classLabels, rootDir, labelfilePath_, classflyFile)
+				shapes_to_label(json_path, classLabels, rootDir)
+			n += 1
+			print('num: ', n)
 	else:
 		raise Exception("please make sure yoloformat is true")
 
@@ -109,7 +87,7 @@ def convert2labelFormat(jsonDir, labelDir, labelmapfile):
 def main(args):
 	jsonfileDir = args.jsonDir
 	labelmapfile = args.labelmap
-	convert2labelFormat(jsonfileDir, labelsDir, labelmapfile)
+	convert2labelFormat(jsonfileDir, labelmapfile)
 
 
 if __name__ == '__main__':

@@ -51,8 +51,10 @@ The passage of dangerous goods containers is prohibited
 Weight limit
 Height limitation
 Maximum width
-Maximum speed
-Minimum speed
+Maximum speed 50
+Maximum speed 40
+Maximum speed 30
+Minimum speed 30
 It's for automatic cars
 Bicycle only
 Bicycle and pedestrian pecific
@@ -81,7 +83,7 @@ Oblique stop
 Sound the siren
 A go slow
 B go slow
-A Temporary parking stop
-B Temporary parking 
+Temporary parking stop
+Temporary parking 
 No pedestrians allowed
 Pedestrians are prohibited from crossing

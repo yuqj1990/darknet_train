@@ -14,8 +14,8 @@ def parse_args_augment():
 
 
 annoImageDir = '../../dataset/roadSign/annoImage'
-rootDir = '../../dataset/roadSign'
-labelsDir = rootDir + '/labels'
+frameDir = '../../dataset/roadSign/frame/'
+labelsDir = '../../dataset/roadSign/labels'
 
 classflyFile = "./roadSign_classfly_distance_data.txt"
 collectBoxData = True
@@ -49,11 +49,27 @@ def convert(size, box):
 	return (x,y,w,h)
 
 
+# this api get the full image path from label txt file
+def writeImageSet(srcDir, labelDir, setDir):
+	if not os.path.exists(setDir):
+		os.mkdir(setDir)
+	dir_forder = ['train']
+	for forder in dir_forder:
+		set_file = setDir + '/' + forder + '.txt'
+		set_file_ = open(set_file, 'w')
+		labelfilelist = os.listdir(labelDir)
+		for file in labelfilelist:
+			img_file_path = srcDir + '/' + file + '.jpg' + '\n'
+			set_file_.writelines(img_file_path)
+			print(img_file_path)
+		set_file_.close()
+
+
 def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, classflydataFile):
 	label_data = json.load(open(jsonfilePath, 'r'))
 	imagePath = label_data['imagePath'].split('..\\')[-1]
 	#imagePath = jsonfilePath.split('/')[-1].split('.json')[0] + '.jpg'
-	fullPath = os.path.abspath(root + '/frame/' + imagePath)
+	fullPath = os.path.abspath(root + imagePath)
 	print(fullPath)
 	img = cv2.imread(fullPath)
 	img_h = img.shape[0]
@@ -104,7 +120,7 @@ def convert2labelFormat(jsonDir, labelDir, labelmapfile):
 			json_path = os.path.join(jsonDir, json_file_)
 			if os.path.isfile(json_path):
 				labelfilePath_ = labelDir + '/' + json_file_.split('.json')[0]
-				shapes_to_label(json_path, classLabels, rootDir, labelfilePath_, classflyFile)
+				shapes_to_label(json_path, classLabels, frameDir, labelfilePath_, classflyFile)
 				n += 1
 				print("num: ", n)
 	else:
@@ -115,6 +131,8 @@ def main(args):
 	jsonfileDir = args.jsonDir
 	labelmapfile = args.labelmap
 	convert2labelFormat(jsonfileDir, labelsDir, labelmapfile)
+	setDir = "../../dataset/roadSign/Main"
+	writeImageSet(frameDir, labelsDir, setDir)
 
 
 if __name__ == '__main__':

@@ -52,6 +52,7 @@ def convert(size, box):
 def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, classflydataFile):
 	label_data = json.load(open(jsonfilePath, 'r'))
 	imagePath = label_data['imagePath'].split('..\\')[-1]
+	#imagePath = jsonfilePath.split('/')[-1].split('.json')[0] + '.jpg'
 	fullPath = os.path.abspath(root + '/frame/' + imagePath)
 	print(fullPath)
 	img = cv2.imread(fullPath)
@@ -68,6 +69,7 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, clas
 			ymin = points[0][1]
 			xmax = points[1][0]
 			ymax = points[1][1]
+			print(xmin, ymin, xmax, ymax)
 			if isSaveImglabeled:
 				cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0), 3)
 			b = (xmin, xmax, ymin, ymax)
@@ -96,12 +98,15 @@ def convert2labelFormat(jsonDir, labelDir, labelmapfile):
 	classfy_.close()
 	if not os.path.exists(labelDir):
 		os.mkdir(labelsDir)
+	n = 0
 	if yoloformat:
 		for json_file_ in os.listdir(jsonDir):
 			json_path = os.path.join(jsonDir, json_file_)
 			if os.path.isfile(json_path):
 				labelfilePath_ = labelDir + '/' + json_file_.split('.json')[0]
 				shapes_to_label(json_path, classLabels, rootDir, labelfilePath_, classflyFile)
+				n += 1
+				print("num: ", n)
 	else:
 		raise Exception("please make sure yoloformat is true")
 

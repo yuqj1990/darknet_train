@@ -139,7 +139,7 @@ int save_video(image im, const char*name, int ms)
         // 空视频对象则初始化一个对象
         if(video == NULL){
             const char* output_name = "output.mp4"; //修改输出路径
-            video = new VideoWriter(output_name, VideoWriter::fourcc('M','J','P','G'), 50, Size(im.w,im.h));
+            video = new VideoWriter(output_name, VideoWriter::fourcc('m', 'p', '4', 'v'), 25, Size(im.w,im.h));
             printf("\n DST output_video = %s  \n", output_name);
         }
         video->write(m);

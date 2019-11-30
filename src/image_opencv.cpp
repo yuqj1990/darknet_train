@@ -130,6 +130,26 @@ void make_window(char *name, int w, int h, int fullscreen)
     }
 }
 
+int save_video(image im, const char*name, int ms)
+{
+    // 静态数据成员，第一次调用初始化，之后调用不会在初始化
+    static VideoWriter* video;
+    Mat m = image_to_mat(im);
+    {
+        // 空视频对象则初始化一个对象
+        if(video == NULL){
+            const char* output_name = "output.mp4"; //修改输出路径
+            video = new VideoWriter(output_name, VideoWriter::fourcc('M','J','P','G'), 50, Size(im.w,im.h));
+            printf("\n DST output_video = %s  \n", output_name);
+        }
+        video->write(m);
+		printf("\n cvWriteFrame \n");
+    }
+    int c = waitKey(ms);
+    if (c != -1) c = c%256;
+    return c;
+}
+
 }
 
 #endif

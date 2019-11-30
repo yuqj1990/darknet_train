@@ -540,7 +540,9 @@ void rgbgr_image(image im)
 int show_image(image p, const char *name, int ms)
 {
 #ifdef OPENCV
-    int c = show_image_cv(p, name, ms);
+    // int c = show_image_cv(p, name, ms);
+    // 增加保存结果视频
+    int c = save_video(p, name, ms);
     return c;
 #else
     fprintf(stderr, "Not compiled with OpenCV, saving to %s.png instead\n", name);

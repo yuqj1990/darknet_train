@@ -1,6 +1,6 @@
 
 
-./darknet detector train cfg/voc.data cfg/yolov3-yolov3-voc_roadsign.cfg backup/yolov3-yolov3-voc_roadsign.backup
+./darknet detector train cfg/roadSign.data cfg/yolov3_roadsign.cfg backup/yolov3_roadsign.backup
 
 
 

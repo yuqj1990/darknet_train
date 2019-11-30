@@ -54,7 +54,7 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root):
 	imagePath = label_data['imagePath'].split('..\\')[-1]
 	print('image: %s, json: %s'%(imagePath.split('.jpg')[0], jsonfilePath.split('/')[-1].split('.json')[0]))
 	#assert imagePath.split('.jpg')[0] == jsonfilePath.split('/')[-1].split('.json')[0]
-	fullPath = os.path.abspath(root + '/frame/' + imagePath)
+	fullPath = os.path.abspath(root + '/images/' + imagePath)
 	classfly_file = open(wrongLabeledfile_, 'a+')
 	print(fullPath)
 	img = cv2.imread(fullPath)

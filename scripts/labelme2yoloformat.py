@@ -14,7 +14,7 @@ def parse_args_augment():
 
 
 annoImageDir = '../../dataset/roadSign/annoImage'
-frameDir = '../../dataset/roadSign/frame/'
+frameDir = '../../dataset/roadSign/images/'
 labelsDir = '../../dataset/roadSign/labels'
 
 classflyFile = "./roadSign_classfly_distance_data.txt"
@@ -59,18 +59,16 @@ def writeImageSet(srcDir, labelDir, setDir):
 		set_file_ = open(set_file, 'w')
 		labelfilelist = os.listdir(labelDir)
 		for file in labelfilelist:
-			img_file_path = srcDir + '/' + file + '.jpg' + '\n'
+			img_file_path = os.path.abspath(srcDir + '/' + file.split('.txt')[0] + '.jpg') + '\n'
 			set_file_.writelines(img_file_path)
 			print(img_file_path)
 		set_file_.close()
 
 
-def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, classflydataFile):
+def shapes_to_label(jsonfilePath, label_name_to_value, root, classflydataFile):
 	label_data = json.load(open(jsonfilePath, 'r'))
 	imagePath = label_data['imagePath'].split('..\\')[-1]
-	#imagePath = jsonfilePath.split('/')[-1].split('.json')[0] + '.jpg'
 	fullPath = os.path.abspath(root + imagePath)
-	print(fullPath)
 	img = cv2.imread(fullPath)
 	img_h = img.shape[0]
 	img_w = img.shape[1]
@@ -79,13 +77,15 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, clas
 	for shape in label_shapes:
 		label = shape['label']
 		if label != 'Sidewalk a' and label != 'Sidewalk b' and label != 'side walk B' and label != 'side walk A' and label != 'Side walk B':
+			print('imagepath: %s, jsonpath: %s'%(fullPath, jsonfilePath))
+			assert imagePath.split('.jpg')[0] == jsonfilePath.split('/')[-1].split('.json')[0]
+			labelfilePath = labelsDir + '/' + jsonfilePath.split('/')[-1].split('.json')[0] +'.txt'
 			label_file_ = open(labelfilePath, 'a+')
 			points = shape['points']
 			xmin = points[0][0]
 			ymin = points[0][1]
 			xmax = points[1][0]
 			ymax = points[1][1]
-			print(xmin, ymin, xmax, ymax)
 			if isSaveImglabeled:
 				cv2.rectangle(img, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (255, 0, 0), 3)
 			b = (xmin, xmax, ymin, ymax)
@@ -94,8 +94,6 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root, labelfilePath, clas
 				classfly_file.writelines(" ".join([str(a) for a in bb]) + '\n')
 			label_prefix = label.split(' ')
 			label_content = label_prefix[0] + ' ' + label_prefix[1]
-			#if label_content == 'Maximum speed' or label_content == 'Minimum speed' or label_content == "Maximum width":
-			#	continue
 			cls_id = label_name_to_value[label]
 			label_file_.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 			label_file_.close()
@@ -119,8 +117,7 @@ def convert2labelFormat(jsonDir, labelDir, labelmapfile):
 		for json_file_ in os.listdir(jsonDir):
 			json_path = os.path.join(jsonDir, json_file_)
 			if os.path.isfile(json_path):
-				labelfilePath_ = labelDir + '/' + json_file_.split('.json')[0]
-				shapes_to_label(json_path, classLabels, frameDir, labelfilePath_, classflyFile)
+				shapes_to_label(json_path, classLabels, frameDir, classflyFile)
 				n += 1
 				print("num: ", n)
 	else:

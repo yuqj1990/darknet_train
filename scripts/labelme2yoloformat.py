@@ -67,7 +67,7 @@ def writeImageSet(srcDir, labelDir, setDir):
 
 def shapes_to_label(jsonfilePath, label_name_to_value, root, classflydataFile):
 	label_data = json.load(open(jsonfilePath, 'r'))
-	imagePath = label_data['imagePath'].split('..\\')[-1]
+	imagePath = label_data['imagePath'].split('\\')[-1]
 	fullPath = os.path.abspath(root + imagePath)
 	img = cv2.imread(fullPath)
 	img_h = img.shape[0]
@@ -92,8 +92,8 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root, classflydataFile):
 			bb = convert((img_w, img_h), b)
 			if collectBoxData:
 				classfly_file.writelines(" ".join([str(a) for a in bb]) + '\n')
-			label_prefix = label.split(' ')
-			label_content = label_prefix[0] + ' ' + label_prefix[1]
+			#label_prefix = label.split(' ')
+			#label_content = label_prefix[0] + ' ' + label_prefix[1]
 			cls_id = label_name_to_value[label]
 			label_file_.write(str(cls_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 			label_file_.close()

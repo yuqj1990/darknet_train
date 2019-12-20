@@ -69,6 +69,7 @@ def shapes_to_label(jsonfilePath, label_name_to_value, root, classflydataFile):
 	label_data = json.load(open(jsonfilePath, 'r'))
 	imagePath = label_data['imagePath'].split('\\')[-1]
 	fullPath = os.path.abspath(root + imagePath)
+	print("fullPath: ", fullPath)
 	img = cv2.imread(fullPath)
 	img_h = img.shape[0]
 	img_w = img.shape[1]

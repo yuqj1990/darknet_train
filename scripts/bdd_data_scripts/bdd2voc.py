@@ -10,21 +10,21 @@ __email__ = 'yuqj@deepano.com'
 __license__ = 'DEEPANO'
 
 
-anno_root = "../../dataset/car_person_data/bdd100k/Annotations/"
-label_train_root = "../../dataset/car_person_data/bdd100k/labels/100k/train/"
-label_val_root = "../../dataset/car_person_data/bdd100k/labels/100k/val/"
-anno_image = "../../dataset/car_person_data/bdd100k/annoImage/"
-src_image_train_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/train/"
-src_image_val_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/val/"
-src_image_test_root = "../../dataset/car_person_data/bdd100k/JPEGImages/100k/test/"
-label_json_file = ["../../dataset/car_person_data/bdd100k/labels/100k/train/bdd100k_labels_images_train.json",
-                   "../../dataset/car_person_data/bdd100k/labels/100k/val/bdd100k_labels_images_val.json"]
+anno_root = "../../../dataset/car_person_data/bdd100k/Annotations/"
+label_train_root = "../../../dataset/car_person_data/bdd100k/labels/100k/train/"
+label_val_root = "../../../dataset/car_person_data/bdd100k/labels/100k/val/"
+anno_image = "../../../dataset/car_person_data/bdd100k/annoImage/"
+src_image_train_root = "../../../dataset/car_person_data/bdd100k/JPEGImages/100k/train/"
+src_image_val_root = "../../../dataset/car_person_data/bdd100k/JPEGImages/100k/val/"
+src_image_test_root = "../../../dataset/car_person_data/bdd100k/JPEGImages/100k/test/"
+label_json_file = ["../../../dataset/car_person_data/bdd100k/labels/100k/train/bdd100k_labels_images_train.json",
+                   "../../../dataset/car_person_data/bdd100k/labels/100k/val/bdd100k_labels_images_val.json"]
 label_txt_root = [label_train_root, label_val_root]
 src_image_root = [src_image_train_root, src_image_val_root]
 category_label = ['traffic light','traffic sign', 'person', 'rider', 'bicycle', 'bus', 'car', 'caravan', 'motorcycle', 'trailer',
                   'train', 'truck']
 thread_hold = 40
-clusterLabelFile = '../../dataset/car_person_data/bdd100k/clusterlabelFile.txt'
+clusterLabelFile = 'clusterlabelFile.txt'
 
 def parse_args():
     parse = argparse.ArgumentParser()

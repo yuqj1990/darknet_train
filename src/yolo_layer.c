@@ -180,6 +180,10 @@ void forward_yolo_layer(const layer l, network net)
                         l.delta[obj_index] = 0;
                     }
                     if (best_iou > l.truth_thresh) {
+                        // 这个参数在cfg文件中，值为1，这个条件语句永远不可能成立
+                        // 作者在YOLOv3的论文中的第四节提到了这部分。
+                        // 作者尝试Faster R-CNN中提到的双IoU策略，当anchor与GT的IoU大于0.7时，该anchor被算作正样本计入损失中。
+                        // 但训练过程中并没有产生好的效果，所以最后放弃了
                         l.delta[obj_index] = 1 - l.output[obj_index];
 
                         int class = net.truth[best_t*(4 + 1) + b*l.truths + 4];
@@ -187,6 +191,11 @@ void forward_yolo_layer(const layer l, network net)
                         int class_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4 + 1);
                         delta_yolo_class(l.output, l.delta, class_index, class, l.classes, l.w*l.h, 0);
                         box truth = float_to_box(net.truth + best_t*(4 + 1) + b*l.truths, 1);
+                        // 计算定位损失
+                        // 以每个预测框为基准。让每个cell对应的预测框去拟合GT，若IOU大于阈值，则计算损失。
+                        //（注意和另一个delta_yolo_box的区别哦！）
+                        // 由于有阈值限制，这样有可能造成有个别的GT没有匹配到对应的预测框，漏了这部分的损失。
+                        // 这样只把预测框与GT之间的IOU大于设定的阈值的算作定位损失
                         delta_yolo_box(truth, l.output, l.biases, l.mask[n], box_index, i, j, l.w, l.h, net.w, net.h, l.delta, (2-truth.w*truth.h), l.w*l.h);
                     }
                 }
@@ -212,9 +221,12 @@ void forward_yolo_layer(const layer l, network net)
                     best_n = n;
                 }
             }
-
+            // 在l.mask数组指针中寻找best_n，若找到则返回best_n在l.mask中的下标，若找不到返回-1。
             int mask_n = int_index(l.mask, best_n, l.n);
             if(mask_n >= 0){
+                // 计算定位损失
+                // 以每张图的GT作为基准。先找到与GT有最大IOU的pre(先验框) box，然后计算其产生的损失。
+                // 有可能这个pre(先验框) box产生的损失已经计算过了，又重新计算了一遍。
                 int box_index = entry_index(l, b, mask_n*l.w*l.h + j*l.w + i, 0);
                 float iou = delta_yolo_box(truth, l.output, l.biases, best_n, box_index, i, j, l.w, l.h, net.w, net.h, l.delta, (2-truth.w*truth.h), l.w*l.h);
 

@@ -4,7 +4,7 @@ OPENCV=1
 OPENMP=0
 DEBUG=0
 
-ARCH= -gencode arch=compute_30,code=sm_30
+ARCH= -gencode arch=compute_61,code=sm_61
 
 VPATH=./src/:./examples
 SLIB=libdarknet.so

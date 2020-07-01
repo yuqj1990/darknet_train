@@ -4,7 +4,7 @@ OPENCV=1
 OPENMP=0
 DEBUG=0
 
-ARCH=  -gencode arch=compute_61,code=sm_61
+SET(CUDA_NVCC_FLAGS -gencode arch=compute_61,code=sm_61;-G;-g)
 
 VPATH=./src/:./examples
 SLIB=libdarknet.so

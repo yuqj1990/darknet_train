@@ -147,7 +147,6 @@ int save_video(image im, const char*name, int ms)
             number = 1;
         }
         video << m;
-		printf("\n cvWriteFrame \n");
     }
 
     return 1;

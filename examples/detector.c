@@ -669,6 +669,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
              }
             else{
                 save_image(im, "predictions");
+#if 1
 #ifdef OPENCV
                 cvNamedWindow("predictions", CV_WINDOW_NORMAL); 
                 if(fullscreen){
@@ -677,6 +678,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
                 show_image(im, "predictions", 0);
                 cvWaitKey(0);
                 cvDestroyAllWindows();
+#endif
 #endif
             }
             free_image(im);
@@ -693,9 +695,9 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             char **paths = (char **)list_to_array(plist);
              printf("Start Testing!\n");
             int m = plist->size;
-            if(access("./data/out",0)==-1)
+            if(access("../data/out",0)==-1)
             {
-              if (mkdir("./data/out",0777))
+              if (mkdir("../data/out",0777))
                {
                  printf("creat file bag failed!!!");
                }
@@ -725,10 +727,11 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
                 else{
                     
                     char b[2048];
-                    sprintf(b,"./data/out/%s",GetFilename(path));
+                    sprintf(b,"../data/out/%s",GetFilename(path));
                     
                     save_image(im, b);
                     printf("save %s successfully!\n",GetFilename(path));
+                    #if 1
                     #ifdef OPENCV
                     cvNamedWindow("predictions", CV_WINDOW_NORMAL); 
                     if(fullscreen){
@@ -737,6 +740,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
                     show_image(im, "predictions", 0);
                     cvWaitKey(0);
                     cvDestroyAllWindows();
+                    #endif
                     #endif
                 }
         

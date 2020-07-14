@@ -1,1 +1,0 @@
-./darknet detector demo cfg/roadSign.data cfg/yolov3_roadsign_prune_512.cfg backup/yolov3_roadsign_prune_512.backup data/FILEM191017-100002.MP4

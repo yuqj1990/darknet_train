@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 
-classfyFile = "./roadSign_classfly_distance_data.txt"
+classfyFile = "/home/yuqianjin/temp/coco/person_classfly_distance_data.txt"
 #classfyFile = './ccpd_classfly_distance_data.txt'
 
 # 定义Box类，描述bounding box的坐标
@@ -189,8 +189,8 @@ def do_kmeans(n_anchors, boxes, centroids):
         new_centroids[group_index].w += box.w
         new_centroids[group_index].h += box.h
     for i in range(n_anchors):
-		new_centroids[i].w /= (len(groups[i])+eps)
-		new_centroids[i].h /= (len(groups[i])+eps)
+        new_centroids[i].w /= (len(groups[i])+eps)
+        new_centroids[i].h /= (len(groups[i])+eps)
     return new_centroids, groups, loss, distance_all
 
 
@@ -204,8 +204,8 @@ def do_kmeans(n_anchors, boxes, centroids):
 def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations_num,plus):
     boxes = getClassflyIouBbox(label_path)
     if plus:
-		print('boxes length: ', len(boxes))
-		centroids = init_centroids(boxes, n_anchors)
+        print('boxes length: ', len(boxes))
+        centroids = init_centroids(boxes, n_anchors)
     else:
         centroid_indices = np.random.choice(len(boxes), n_anchors)
         centroids = []
@@ -229,26 +229,31 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
         prev_assignments = assignments.copy()
     # print result
     ii=0
+    centroids = centroids.sort()
     for centroid in centroids:
-        print("k-means result：\n")
-        print("the num of the group_%d: %d"%(ii, len(groups[ii])))
-        print(centroid.w*grid_size, centroid.h*grid_size)
+        print("{:.2f},{:.2f}, ".format(centroid.w*grid_size, centroid.h*grid_size))
         ii+=1
     avgIOU = avg_iou(boxes, centroids)
     print("avgIOU: ", avgIOU)
 
 
-def main():
+def parse_augement():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--anchors', type = int, default = 9)
+    parser.add_argument('--input', type = int, default = 112)
+    args = parser.parse_args()
+    return args
+
+def main(args):
 	if 1:
-		n_anchors = 9
+		n_anchors = args.anchors
 		loss_convergence = 1e-2
-		grid_size = 608
+		grid_size = args.input
 		iterations_num = 10000
 		plus = 1
 		compute_centroids(classfyFile,n_anchors,loss_convergence,grid_size,iterations_num,plus)
 
 
 if __name__ == '__main__':
-	main()
-
-
+    args = parse_augement()
+    main(args)

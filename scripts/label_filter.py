@@ -163,7 +163,7 @@ to extract cleaned dataset which has big box annotation labels.
 '''
 def generate_replicate_label(rawLabelFolder, rawImageFolder, saveNewLabelFolder, 
                                     saveNewOriimgFolder, saveCutimgFolder, 
-                                    smallThrehold = 0.5, bigThrehold = 0.85, boxNum = 7):
+                                    smallThrehold = 0.5, bigThrehold = 0.85, boxNum = 7, proportion = 7.5):
     if not os.path.exists(rawLabelFolder):
         raise("{} is not exists".format(rawLabelFolder))
     if not os.path.exists(saveNewLabelFolder):
@@ -196,6 +196,8 @@ def generate_replicate_label(rawLabelFolder, rawImageFolder, saveNewLabelFolder,
                     xmax = int((bbox[1] + float(bbox[3] / 2)) * w)
                     ymin = int((bbox[2] - float(bbox[4] / 2)) * h)
                     ymax = int((bbox[2] + float(bbox[4] / 2)) * h)
+                    bbox_width = xmax -xmin
+                    bbox_height = ymax - ymin
                     boolNotSuperBig = True
                     boolNotBoxenvelope = True
                     if len(boxes) > boxNum and bbox[3] >= bigThrehold: # absolute super big big box anno
@@ -203,7 +205,11 @@ def generate_replicate_label(rawLabelFolder, rawImageFolder, saveNewLabelFolder,
                         boolNotSuperBig = False
                         boolWritelabel = True
                     boolEnv, boxCount = Boxenvelope(bbox, boxes, w, h)
-                    envBoxNum = 4
+                    envBoxNum = 6
+                    if float(bbox_width / bbox_height) >= proportion:
+                        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0,0,255),thickness=3)
+                        boolNotSuperBig = False
+                        boolWritelabel = True
                     if len(boxes) > boxNum and boolEnv and boxCount >= envBoxNum: # related box envelope other small boxes
                         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0,0,255),thickness=3)
                         boolNotBoxenvelope = False

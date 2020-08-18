@@ -1,6 +1,7 @@
 # -*- coding:UTF-8 -*-
 from __future__ import division
 import numpy as np
+import argparse
 
 
 classfyFile = "/home/yuqianjin/temp/coco/person_classfly_distance_data.txt"
@@ -229,9 +230,12 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
         prev_assignments = assignments.copy()
     # print result
     ii=0
-    centroids = centroids.sort()
-    for centroid in centroids:
-        print("{:.2f},{:.2f}, ".format(centroid.w*grid_size, centroid.h*grid_size))
+    center_list = []
+    for center in centroids:
+        center_list.append((center.w*grid_size, center.h*grid_size))
+    center_list.sort()
+    for centroid in center_list:
+        print("{:.2f},{:.2f}, ".format(centroid[0], centroid[1]))
         ii+=1
     avgIOU = avg_iou(boxes, centroids)
     print("avgIOU: ", avgIOU)

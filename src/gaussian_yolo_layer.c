@@ -371,7 +371,7 @@ void delta_gaussian_yolo_class(float *output, float *delta, int index, int class
         float label_smooth_eps, float *classes_multipliers)
 {
     int n;
-    if (delta[index + stride*class_id]){
+    if (delta[index/* + stride*class_id*/]){
         float y_true = 1;
         if(label_smooth_eps) y_true = y_true *  (1 - label_smooth_eps) + 0.5*label_smooth_eps;
         float result_delta = y_true - output[index + stride*class_id];
@@ -502,6 +502,7 @@ void forward_gaussian_yolo_layer(const layer l, network_state state)
 
 
                         float objectness = l.output[obj_index];
+                        if (isnan(objectness) || isinf(objectness)) l.output[obj_index] = 0;
                         int class_id_match = compare_gaussian_yolo_class(l.output, l.classes, class_index, l.w*l.h, objectness, class_id, 0.25f);
 
                         float iou = box_iou(pred, truth);
@@ -558,6 +559,16 @@ void forward_gaussian_yolo_layer(const layer l, network_state state)
         }
         for(t = 0; t < l.max_boxes; ++t){
             box truth = float_to_box_stride(state.truth + t*(4 + 1) + b*l.truths, 1);
+
+            if (truth.x < 0 || truth.y < 0 || truth.x > 1 || truth.y > 1 || truth.w < 0 || truth.h < 0) {
+                char buff[256];
+                printf(" Wrong label: truth.x = %f, truth.y = %f, truth.w = %f, truth.h = %f \n", truth.x, truth.y, truth.w, truth.h);
+                sprintf(buff, "echo \"Wrong label: truth.x = %f, truth.y = %f, truth.w = %f, truth.h = %f\" >> bad_label.list",
+                    truth.x, truth.y, truth.w, truth.h);
+                system(buff);
+            }
+            int class_id = state.truth[t*(4 + 1) + b*l.truths + 4];
+            if (class_id >= l.classes || class_id < 0) continue; // if label contains class_id more than number of classes in the cfg-file and class_id check garbage value
 
             if(!truth.x) break;
             float best_iou = 0;

@@ -243,8 +243,8 @@ def compute_centroids(label_path,n_anchors,loss_convergence,grid_size,iterations
 
 def parse_augement():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--anchors', type = int, default = 9)
-    parser.add_argument('--input', type = int, default = 112)
+    parser.add_argument('anchors', type = int, default = 9)
+    parser.add_argument('input', type = int, default = 112)
     args = parser.parse_args()
     return args
 

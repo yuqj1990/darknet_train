@@ -268,7 +268,7 @@ def get_person_labelfile(setFile, newFile):
                             labels_list.append(label_content)
                     if len(labels_list) > 0:
                         if setFile == "5k.txt":
-                            setNewFile.write(img_path + "\n")
+                            setNewFile.write(img_path.replace("ubuntu/sharedata", "yuqianjin/temp") + "\n")
                         new_label_file = open(New_label_path, "w")
                         new_label_file.write('\n'.join(labels_list))
                         new_label_file.close()

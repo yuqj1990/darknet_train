@@ -33,7 +33,7 @@ static image det_s;
 static cap_cv *cap;
 static float fps = 0;
 static float demo_thresh = 0;
-static int demo_ext_output = 0;
+static int demo_ext_output = 1;
 static long long int frame_id = 0;
 static int demo_json_port = -1;
 

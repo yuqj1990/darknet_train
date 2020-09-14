@@ -486,7 +486,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 const float class_multiplier = (l.classes_multipliers) ? l.classes_multipliers[class_id] : 1.0f;
                 ious all_ious = delta_yolo_box(truth, l.output, l.biases, best_n, box_index, i, j, l.w, l.h, state.net.w, state.net.h, l.delta, (2 - truth.w*truth.h), l.w*l.h, l.iou_normalizer * class_multiplier, l.iou_loss, 1, l.max_delta);
                 if(mask_flags[j * l.w + i] == 1)
-                    printf("center merged state.net.w: %d, state.net.h: %d, lw: %d, lh: %d, stride: %d, i: %d, j: %d\n", 
+                    printf("center merged state.net.w: %d, state.net.h: %d, stride: %d, lw: %d, lh: %d, i: %d, j: %d\n", 
                             state.net.w, state.net.h, state.net.w/l.w, l.w, l.h, i, j);
                 // range is 0 <= 1
                 tot_iou += all_ious.iou;

@@ -577,6 +577,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 }
             }
         }
+        free(mask_flags);
     }
 
     if (count == 0) count = 1;

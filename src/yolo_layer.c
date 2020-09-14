@@ -485,8 +485,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 int box_index = entry_index(l, b, mask_n*l.w*l.h + j*l.w + i, 0);
                 const float class_multiplier = (l.classes_multipliers) ? l.classes_multipliers[class_id] : 1.0f;
                 ious all_ious = delta_yolo_box(truth, l.output, l.biases, best_n, box_index, i, j, l.w, l.h, state.net.w, state.net.h, l.delta, (2 - truth.w*truth.h), l.w*l.h, l.iou_normalizer * class_multiplier, l.iou_loss, 1, l.max_delta);
-                printf("mask_n: %d\n", mask_n);
-                //if(mask_flags[mask_n*l.w*l.h + j * l.w + i] == 1)
+                if(mask_flags[mask_n*l.w*l.h + j * l.w + i] == 1)
                     printf("center merged state.net.w: %d, state.net.h: %d, stride: %d, lw: %d, lh: %d, i: %d, j: %d\n", 
                             state.net.w, state.net.h, state.net.w/l.w, l.w, l.h, i, j);
                 // range is 0 <= 1
@@ -516,7 +515,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 ++class_count;
                 if (all_ious.iou > .5) recall += 1;
                 if (all_ious.iou > .75) recall75 += 1;
-                //mask_flags[mask_n*l.w*l.h + j * l.w + i] = 1.;
+                mask_flags[mask_n*l.w*l.h + j * l.w + i] = 1.;
             }
 
             // iou_thresh

@@ -365,7 +365,7 @@ void forward_yolo_layer(const layer l, network_state state)
     int class_count = 0;
     *(l.cost) = 0;
     for (b = 0; b < l.batch; ++b) {
-        float* mask_flags = (float*)xrealloc(mask_flags, 3* l.w*l.h*sizeof(float));
+        float* mask_flags = (float*)malloc(3* l.w*l.h*sizeof(float));
         memset(mask_flags, 0, 3* l.w*l.h* sizeof(float));
         for (j = 0; j < l.h; ++j) {
             for (i = 0; i < l.w; ++i) {

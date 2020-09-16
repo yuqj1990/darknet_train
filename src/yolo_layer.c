@@ -365,8 +365,8 @@ void forward_yolo_layer(const layer l, network_state state)
     int class_count = 0;
     *(l.cost) = 0;
     for (b = 0; b < l.batch; ++b) {
-        float* mask_flags = (float*)malloc(3* l.w*l.h*sizeof(float));
-        memset(mask_flags, 0, 3* l.w*l.h* sizeof(float));
+        //float* mask_flags = (float*)malloc(3* l.w*l.h*sizeof(float));
+        //memset(mask_flags, 0, 3* l.w*l.h* sizeof(float));
         for (j = 0; j < l.h; ++j) {
             for (i = 0; i < l.w; ++i) {
                 for (n = 0; n < l.n; ++n) {
@@ -516,7 +516,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 ++class_count;
                 if (all_ious.iou > .5) recall += 1;
                 if (all_ious.iou > .75) recall75 += 1;
-                mask_flags[mask_n*l.w*l.h + j * l.w + i] = 1.;
+                //mask_flags[mask_n*l.w*l.h + j * l.w + i] = 1.;
             }
 
             // iou_thresh
@@ -578,7 +578,7 @@ void forward_yolo_layer(const layer l, network_state state)
                 }
             }
         }
-        free(mask_flags);
+        //free(mask_flags);
     }
 
     if (count == 0) count = 1;

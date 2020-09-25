@@ -520,6 +520,27 @@ void show_cuda_cudnn_info()
     fprintf(stderr, " \n");
 }
 
+int *cuda_make_int_array_ctdet(int *x, size_t n)
+{
+    int *x_gpu;
+    size_t size = sizeof(int)*n;
+    cudaError_t status = cudaMalloc((void **)&x_gpu, size);
+    check_error(status);
+    if(x){
+        status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
+        check_error(status);
+    }
+    if(!x_gpu) error("Cuda malloc failed\n");
+    return x_gpu;
+}
+
+void cuda_pull_int_array(int *x_gpu, int *x, size_t n)
+{
+    size_t size = sizeof(int)*n;
+    cudaError_t status = cudaMemcpy(x, x_gpu, size, cudaMemcpyDeviceToHost);
+    check_error(status);
+}
+
 #else // GPU
 #include "darknet.h"
 void cuda_set_device(int n) {}

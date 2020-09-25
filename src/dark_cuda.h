@@ -81,6 +81,7 @@ extern "C" {
     int get_number_of_blocks(int array_size, int block_size);
     int get_gpu_compute_capability(int i, char *device_name);
     void show_cuda_cudnn_info();
+    int *cuda_make_int_array_ctdet(int *x, size_t n);
 
 #ifdef CUDNN
 cudnnHandle_t cudnn_handle();

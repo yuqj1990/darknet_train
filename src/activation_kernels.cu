@@ -209,7 +209,11 @@ __global__ void activate_array_kernel(float *x, int n, ACTIVATION a)
     int i = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;
     if(i < n) x[i] = activate_kernel(x[i], a);
 }
-
+extern "C" void activate_array_gpu(float *x, int n, ACTIVATION a) 
+{
+    activate_array_kernel<<<cuda_gridsize(n), BLOCK>>>(x, n, a);
+    check_error(cudaPeekAtLastError());
+}
 
 
 __global__ void activate_array_swish_kernel(float *x, int n, float *output_sigmoid_gpu, float *output_gpu)

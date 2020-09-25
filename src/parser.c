@@ -37,6 +37,7 @@
 #include "utils.h"
 #include "upsample_layer.h"
 #include "version.h"
+#include "ctdet_layer.h"
 #include "yolo_layer.h"
 #include "gaussian_yolo_layer.h"
 
@@ -89,6 +90,7 @@ LAYER_TYPE string_to_layer_type(char * type)
     if (strcmp(type, "[route]")==0) return ROUTE;
     if (strcmp(type, "[upsample]") == 0) return UPSAMPLE;
     if (strcmp(type, "[empty]") == 0) return EMPTY;
+    if (strcmp(type, "[ctdet]")==0) return CTDET;
     return BLANK;
 }
 
@@ -234,6 +236,30 @@ convolutional_layer parse_convolutional(list *options, size_params params)
     }
 
     return layer;
+}
+
+
+layer parse_ctdet(list *options, size_params params)
+{
+    int classes = option_find_int(options, "classes", 80);
+
+    int stride = option_find_int_quiet(options, "stride",1);
+    int size = option_find_int(options, "size",stride);
+    int padding = (size-1)/2;
+    layer l = make_ctdet_layer(params.batch, params.w, params.h, classes,size,stride,padding);
+    assert(l.outputs == params.inputs);
+
+    l.max_boxes = option_find_int_quiet(options, "max",90);
+    l.jitter = option_find_float(options, "jitter", .2);
+    l.random = option_find_int_quiet(options, "random", 0);
+    l.hm_weight = option_find_float(options, "hm", 1.);
+    l.off_weight = option_find_float(options, "off", 1.);
+    l.wh_weight = option_find_float(options, "wh", 0.1);
+
+    char *map_file = option_find_str(options, "map", 0);
+    if (map_file) l.map = read_map(map_file);
+
+    return l;
 }
 
 layer parse_crnn(list *options, size_params params)
@@ -1329,6 +1355,8 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
         }else if (lt == YOLO) {
             l = parse_yolo(options, params);
             l.keep_delta_gpu = 1;
+        }else if(lt == CTDET){
+            l = parse_ctdet(options, params);
         }else if (lt == GAUSSIAN_YOLO) {
             l = parse_gaussian_yolo(options, params);
             l.keep_delta_gpu = 1;
@@ -1896,6 +1924,7 @@ void load_batchnorm_weights(layer l, FILE *fp)
     }
 #endif
 }
+
 
 void load_convolutional_weights_binary(layer l, FILE *fp)
 {

@@ -35,6 +35,7 @@
 #include "scale_channels_layer.h"
 #include "sam_layer.h"
 #include "yolo_layer.h"
+#include "ctdet_layer.h"
 #include "gaussian_yolo_layer.h"
 #include "upsample_layer.h"
 #include "parser.h"
@@ -555,6 +556,8 @@ int resize_network(network *net, int w, int h)
             resize_region_layer(&l, w, h);
         }else if (l.type == YOLO) {
             resize_yolo_layer(&l, w, h);
+        }else if(l.type == CTDET){
+            resize_ctdet_layer(&l, w, h);
         }else if (l.type == GAUSSIAN_YOLO) {
             resize_gaussian_yolo_layer(&l, w, h);
         }else if(l.type == ROUTE){
@@ -735,6 +738,9 @@ int num_detections(network *net, float thresh)
         if (l.type == YOLO) {
             s += yolo_num_detections(l, thresh);
         }
+        if(l.type == CTDET){
+            s += ctdet_num_detections(l, thresh);
+        }
         if (l.type == GAUSSIAN_YOLO) {
             s += gaussian_yolo_num_detections(l, thresh);
         }
@@ -837,6 +843,10 @@ void fill_network_boxes(network *net, int w, int h, float thresh, float hier, in
                 printf(" Error: Different [yolo] layers have different number of classes = %d and %d - check your cfg-file! \n",
                     prev_classes, l.classes);
             }
+        }
+        if(l.type == CTDET){
+            int count = get_ctdet_detections(l, w, h, net->w, net->h, thresh, map, relative, dets);
+            dets += count;
         }
         if (l.type == GAUSSIAN_YOLO) {
             int count = get_gaussian_yolo_detections(l, w, h, net->w, net->h, thresh, map, relative, dets, letter);

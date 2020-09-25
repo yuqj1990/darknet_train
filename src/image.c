@@ -264,6 +264,21 @@ void draw_bbox(image a, box bbox, int w, float r, float g, float b)
     }
 }
 
+void place_image(image im, int w, int h, int dx, int dy, image canvas)
+{
+    int x, y, c;
+    for(c = 0; c < im.c; ++c){
+        for(y = 0; y < h; ++y){
+            for(x = 0; x < w; ++x){
+                float rx = ((float)x / w) * im.w;
+                float ry = ((float)y / h) * im.h;
+                float val = bilinear_interpolate(im, rx, ry, c);
+                set_pixel(canvas, x + dx, y + dy, c, val);
+            }
+        }
+    }
+}
+
 image **load_alphabet()
 {
     int i, j;

@@ -1807,6 +1807,26 @@ extern "C" void smooth_rotate_weights_gpu(const float *src_weight_gpu, float *we
     CHECK_CUDA(cudaPeekAtLastError());
 }
 
+extern "C" void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY)
+{
+    axpy_gpu_offset(N, ALPHA, X, 0, INCX, Y, 0, INCY);
+}
+
+extern "C" void axpy_gpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY)
+{
+    axpy_kernel<<<cuda_gridsize(N), BLOCK>>>(N, ALPHA, X, OFFX, INCX, Y, OFFY, INCY);
+    check_error(cudaPeekAtLastError());
+}
+extern "C" void copy_gpu(int N, float * X, int INCX, float * Y, int INCY)
+{
+    copy_gpu_offset(N, X, 0, INCX, Y, 0, INCY);
+}
+
+extern "C" void copy_gpu_offset(int N, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY)
+{
+    copy_kernel<<<cuda_gridsize(N), BLOCK>>>(N, X, OFFX, INCX, Y, OFFY, INCY);
+    check_error(cudaPeekAtLastError());
+}
 
 
 __global__  void stretch_weights_kernel(const float *src_weight_gpu, float *weight_deform_gpu, int nweights, int n, int kernel_size, float scale, int reverse)

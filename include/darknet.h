@@ -173,6 +173,7 @@ typedef enum {
     REGION,
     YOLO,
     GAUSSIAN_YOLO,
+    CTDET,
     ISEG,
     REORG,
     REORG_OLD,
@@ -308,6 +309,12 @@ struct layer {
     float alpha;
     float beta;
     float kappa;
+
+    int* num_detection;
+    int* num_detection_gpu;
+    float hm_weight;
+    float off_weight;
+    float wh_weight;
 
     float coord_scale;
     float object_scale;
@@ -860,7 +867,7 @@ typedef struct data {
 
 // data.h
 typedef enum {
-    CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
+    CLASSIFICATION_DATA, DETECTION_DATA,MY_DETECTION_DATA,CTDET_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
 } data_type;
 
 // data.h
@@ -1003,6 +1010,9 @@ LIB_API void cuda_pull_array(float *x_gpu, float *x, size_t n);
 LIB_API void cuda_pull_array_async(float *x_gpu, float *x, size_t n);
 LIB_API void cuda_set_device(int n);
 LIB_API void *cuda_get_context();
+void copy_gpu(int N, float * X, int INCX, float * Y, int INCY);
+void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
+void cuda_pull_int_array(int *x_gpu, int *x, size_t n);
 
 // utils.h
 LIB_API void free_ptrs(void **ptrs, int n);

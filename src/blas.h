@@ -82,6 +82,10 @@ void gradient_centralization_gpu(int w, int h, int c, int f, float *in);
 void mean_gpu(float *x, int batch, int filters, int spatial, float *mean);
 void variance_gpu(float *x, float *mean, int batch, int filters, int spatial, float *variance);
 void normalize_gpu(float *x, float *mean, float *variance, int batch, int filters, int spatial);
+void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int INCY);
+void axpy_gpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
+void copy_gpu(int N, float * X, int INCX, float * Y, int INCY);
+void copy_gpu_offset(int N, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY);
 
 void normalize_delta_gpu(float *x, float *mean, float *variance, float *mean_delta, float *variance_delta, int batch, int filters, int spatial, float *delta);
 

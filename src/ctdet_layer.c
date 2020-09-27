@@ -246,7 +246,9 @@ int get_ctdet_detections(layer l, int w, int h, int netw, int neth, float thresh
 
 void forward_ctdet_layer_gpu(const layer l, network net)
 {
-    copy_gpu(l.batch*l.inputs, net.input_gpu, 1, l.output_gpu, 1);
+    //copy_gpu(l.batch*l.inputs, net.input_gpu, 1, l.output_gpu, 1);
+    //copy_ongpu(l.batch*l.inputs, state.input, 1, l.output_gpu, 1);
+    simple_copy_ongpu(l.batch*l.inputs, net.input, l.output_gpu);
     int b ;
     for (b = 0; b < l.batch; ++b){
         int index = entry_index(l, b, 0, 0);

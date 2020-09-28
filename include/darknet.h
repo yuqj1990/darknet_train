@@ -657,6 +657,31 @@ typedef enum {
     CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM, SGDR
 } learning_rate_policy;
 
+
+// data.h
+typedef enum {
+    CLASSIFICATION_DATA, 
+    DETECTION_DATA,
+    MY_DETECTION_DATA,
+    CTDET_DATA, 
+    CAPTCHA_DATA, 
+    REGION_DATA, 
+    IMAGE_DATA, 
+    COMPARE_DATA, 
+    WRITING_DATA, 
+    SWAG_DATA, 
+    TAG_DATA, 
+    OLD_CLASSIFICATION_DATA, 
+    STUDY_DATA, 
+    DET_DATA, 
+    SUPER_DATA, 
+    LETTERBOX_DATA, 
+    REGRESSION_DATA, 
+    SEGMENTATION_DATA, 
+    INSTANCE_DATA, 
+    ISEG_DATA
+} data_type;
+
 // network.h
 typedef struct network {
     int n;
@@ -732,6 +757,7 @@ typedef struct network {
     int init_sequential_subdivisions;
     int current_subdivision;
     int try_fix_nan;
+    data_type data_type_;
 
     int gpu_index;
     tree *hierarchy;
@@ -864,11 +890,6 @@ typedef struct data {
     int *num_boxes;
     box **boxes;
 } data;
-
-// data.h
-typedef enum {
-    CLASSIFICATION_DATA, DETECTION_DATA,MY_DETECTION_DATA,CTDET_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
-} data_type;
 
 // data.h
 typedef struct load_args {

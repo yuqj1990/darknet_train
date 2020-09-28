@@ -1089,8 +1089,17 @@ learning_rate_policy get_policy(char *s)
     return CONSTANT;
 }
 
+data_type get_data_type(char* s){
+    if(strcmp(s, "detection_data")==0) return DETECTION_DATA;
+    if(strcmp(s, "center_data")==0) return CTDET_DATA;
+    fprintf(stderr, "Couldn't find data_type %s, going with detection_data\n", s);
+    return DETECTION_DATA;
+}
+
 void parse_net_options(list *options, network *net)
 {
+    char* dataType_ = option_find_str(options, "data_type", "detection_data");
+    net->data_type_ = get_data_type(dataType_);
     net->max_batches = option_find_int(options, "max_batches", 0);
     net->batch = option_find_int(options, "batch",1);
     net->learning_rate = option_find_float(options, "learning_rate", .001);

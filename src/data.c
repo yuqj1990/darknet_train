@@ -493,10 +493,10 @@ void fill_ctdet_truth_detection(char *path, int num_boxes, float *truth, int cla
         }
         x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
         obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,classes);
-        truth[obj_index] = x;
-        truth[obj_index+1*(out_h*out_w)] = y;
-        truth[obj_index+2*(out_h*out_w)] = w;
-        truth[obj_index+3*(out_h*out_w)] = h;
+        truth[obj_index + (classes + 0)*(out_h*out_w)] = x;
+        truth[obj_index + (classes + 1)*(out_h*out_w)] = y;
+        truth[obj_index + (classes + 2)*(out_h*out_w)] = w;
+        truth[obj_index + (classes + 3)*(out_h*out_w)] = h;
         s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
         s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
         for(index_j=y_min;index_j<y_max;++index_j)
@@ -504,7 +504,8 @@ void fill_ctdet_truth_detection(char *path, int num_boxes, float *truth, int cla
             {
                 class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
                 obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,id);
-                truth[obj_index]=(class_label >= truth[obj_index] ? class_label : truth[obj_index]);
+                truth[obj_index + id * (out_h*out_w)]=(class_label >= truth[obj_index + id * (out_h*out_w)] ? class_label : 
+                                                        truth[obj_index+ id * (out_h*out_w)]);
             }
     }
     free(boxes);

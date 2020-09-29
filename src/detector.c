@@ -107,8 +107,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     if (actual_batch_size == 1) {
         printf("\n Error: You set incorrect value batch=1 for Training! You should set batch=64 subdivision=64 \n");
         getchar();
-    }
-    else if (actual_batch_size < 8) {
+    }else if (actual_batch_size < 8) {
         printf("\n Warning: You set batch=%d lower than 64! It is recommended to set batch=64 subdivision=64 \n", actual_batch_size);
     }
 

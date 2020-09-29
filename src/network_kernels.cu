@@ -290,7 +290,6 @@ void forward_backward_network_gpu(network net, float *x, float *y)
     int y_size = get_network_output_size(net)*net.batch;
     if(net.layers[net.n-1].truths) y_size = net.layers[net.n-1].truths*net.batch;
     if(!*net.input_gpu){
-        printf("@@@@@\n");
         *net.input_gpu = cuda_make_array(x, x_size);
         *net.truth_gpu = cuda_make_array(y, y_size);
     }else{

@@ -247,7 +247,6 @@ int get_ctdet_detections(layer l, int w, int h, int netw, int neth, float thresh
 void forward_ctdet_layer_gpu(const layer l, network_state state)
 {
     copy_gpu(l.batch*l.inputs, state.input, 1, l.output_gpu, 1);
-    printf("woshi\n");
     int b ;
     for (b = 0; b < l.batch; ++b){
         int index = entry_index(l, b, 0, 0);
@@ -263,7 +262,6 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
     //cuda_push_array(state.truth_gpu,state.truth,l.truths*l.batch);
     //forward_ctdet_loss_layer_gpu(l,net);
     float *in_cpu = (float *)xcalloc(l.batch*l.inputs, sizeof(float));
-    cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
     memcpy(in_cpu, l.output, l.batch*l.outputs*sizeof(float));
     float *truth_cpu = 0;
     if (state.truth) {

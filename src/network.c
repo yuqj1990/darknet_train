@@ -527,13 +527,10 @@ int resize_network(network *net, int w, int h)
     }
 #endif
     int i;
-    //if(w == net->w && h == net->h) return 0;
     net->w = w;
     net->h = h;
     int inputs = 0;
     size_t workspace_size = 0;
-    //fprintf(stderr, "Resizing to %d x %d...\n", w, h);
-    //fflush(stderr);
     for (i = 0; i < net->n; ++i){
         layer l = net->layers[i];
         //printf(" (resize %d: layer = %d) , ", i, l.type);

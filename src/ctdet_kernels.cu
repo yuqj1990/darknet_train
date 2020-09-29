@@ -61,7 +61,7 @@ __global__ void forward_ctdet_loss_layer_kernel(int n, int in_h, int in_w,int cl
     }
 }
 
-extern "C" void forward_ctdet_loss_layer_gpu( layer l, network net)
+extern "C" void forward_ctdet_loss_layer_gpu( layer l, network_state state)
 {
 
     int h = l.out_h;
@@ -70,11 +70,11 @@ extern "C" void forward_ctdet_loss_layer_gpu( layer l, network net)
     float show[3]={0};
     float *show_gpu=cuda_make_array(show,3);
     cudaMemset(l.delta_gpu,0,l.batch*l.outputs* sizeof(float));
-    forward_ctdet_loss_layer_kernel<<<cuda_gridsize(n), BLOCK>>>(n, l.h, l.w,l.classes ,l.output_gpu,l.delta_gpu,*(net.truth_gpu),l.hm_weight,l.off_weight,l.wh_weight,show_gpu);
+    forward_ctdet_loss_layer_kernel<<<cuda_gridsize(n), BLOCK>>>(n, l.h, l.w,l.classes ,l.output_gpu,l.delta_gpu,state.truth,l.hm_weight,l.off_weight,l.wh_weight,show_gpu);
     cuda_pull_array(show_gpu,show,3);
     cuda_pull_array(l.delta_gpu,l.delta,l.batch*l.outputs);
     *(l.cost) = pow(mag_array(l.delta, l.outputs * l.batch), 2);
-    printf("Region %d   Obj: %f, Avg IOU: %f, count: %d\n", net.index , show[0]/show[2],show[1]/show[2],(int)show[2]);
+    printf("Region %d   Obj: %f, Avg IOU: %f, count: %d\n", state.index , show[0]/show[2],show[1]/show[2],(int)show[2]);
     cudaFree(show_gpu);
     check_error(cudaPeekAtLastError());
 }
@@ -118,7 +118,7 @@ __global__ void forward_ctdet_maxpool_layer_kernel(int n, int in_h, int in_w, in
 }
 
 
-extern "C" void forward_ctdet_maxpool_layer_gpu(layer l, network net)
+extern "C" void forward_ctdet_maxpool_layer_gpu(layer l, network_state state)
 {
     int h = l.out_h;
     int w = l.out_w;

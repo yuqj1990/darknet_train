@@ -824,8 +824,8 @@ typedef struct network {
     float clip;
 
 #ifdef GPU
-    float *data_input_gpu;
-    float *ground_truth_gpu;
+    //float *input_gpu;
+    //float *truth_gpu;
     float *delta_gpu;
     float *output_gpu;
 

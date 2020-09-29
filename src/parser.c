@@ -1610,6 +1610,13 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
 
     net.outputs = get_network_output_size(net);
     net.output = get_network_output(net);
+    net.input = calloc(net.inputs*net.batch, sizeof(float));
+    net.truth = calloc(net.truths*net.batch, sizeof(float));
+#ifdef GPU
+    net.output_gpu = net.output;
+    net.data_input_gpu = cuda_make_array(net.input, net.inputs*net.batch);
+    net.ground_truth_gpu = cuda_make_array(net.truth, net.truths*net.batch);
+#endif
     avg_outputs = avg_outputs / avg_counter;
     fprintf(stderr, "Total BFLOPS %5.3f \n", bflops);
     fprintf(stderr, "avg_outputs = %d \n", avg_outputs);
@@ -1642,9 +1649,9 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
         }
     }
 #else
-        if (workspace_size) {
-            net.workspace = (float*)xcalloc(1, workspace_size);
-        }
+    if (workspace_size) {
+        net.workspace = (float*)xcalloc(1, workspace_size);
+    }
 #endif
 
     LAYER_TYPE lt = net.layers[net.n - 1].type;

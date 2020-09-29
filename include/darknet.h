@@ -34,7 +34,9 @@
 
 #define SECRET_NUM -1234
 
-typedef enum { UNUSED_DEF_VAL } UNUSED_ENUM_TYPE;
+typedef enum { 
+    UNUSED_DEF_VAL 
+} UNUSED_ENUM_TYPE;
 
 #ifdef GPU
 
@@ -104,42 +106,81 @@ typedef struct tree {
 
 // activations.h
 typedef enum {
-    LOGISTIC, RELU, RELU6, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN, SELU, GELU, SWISH, MISH, NORM_CHAN, NORM_CHAN_SOFTMAX, NORM_CHAN_SOFTMAX_MAXVAL
+    LOGISTIC, 
+    RELU, 
+    RELU6, 
+    RELIE, 
+    LINEAR, 
+    RAMP, 
+    TANH, 
+    PLSE, 
+    LEAKY, 
+    ELU, 
+    LOGGY, 
+    STAIR, 
+    HARDTAN, 
+    LHTAN, 
+    SELU, 
+    GELU, 
+    SWISH, 
+    MISH, 
+    NORM_CHAN, 
+    NORM_CHAN_SOFTMAX, 
+    NORM_CHAN_SOFTMAX_MAXVAL
 }ACTIVATION;
 
 // parser.h
 typedef enum {
-    IOU, GIOU, MSE, DIOU, CIOU
+    IOU, 
+    GIOU, 
+    MSE, 
+    DIOU, 
+    CIOU
 } IOU_LOSS;
 
 // parser.h
 typedef enum {
-    DEFAULT_NMS, GREEDY_NMS, DIOU_NMS, CORNERS_NMS
+    DEFAULT_NMS, 
+    GREEDY_NMS, 
+    DIOU_NMS, 
+    CORNERS_NMS
 } NMS_KIND;
 
 // parser.h
 typedef enum {
-    YOLO_CENTER = 1 << 0, YOLO_LEFT_TOP = 1 << 1, YOLO_RIGHT_BOTTOM = 1 << 2
+    YOLO_CENTER = 1 << 0, 
+    YOLO_LEFT_TOP = 1 << 1, 
+    YOLO_RIGHT_BOTTOM = 1 << 2
 } YOLO_POINT;
 
 // parser.h
 typedef enum {
-    NO_WEIGHTS, PER_FEATURE, PER_CHANNEL
+    NO_WEIGHTS, 
+    PER_FEATURE, 
+    PER_CHANNEL
 } WEIGHTS_TYPE_T;
 
 // parser.h
 typedef enum {
-    NO_NORMALIZATION, RELU_NORMALIZATION, SOFTMAX_NORMALIZATION
+    NO_NORMALIZATION, 
+    RELU_NORMALIZATION, 
+    SOFTMAX_NORMALIZATION
 } WEIGHTS_NORMALIZATION_T;
 
 // image.h
 typedef enum{
-    PNG, BMP, TGA, JPG
+    PNG, 
+    BMP, 
+    TGA, 
+    JPG
 } IMTYPE;
 
 // activations.h
 typedef enum{
-    MULT, ADD, SUB, DIV
+    MULT, 
+    ADD, 
+    SUB, 
+    DIV
 } BINARY_ACTIVATION;
 
 // layer.h
@@ -186,7 +227,12 @@ typedef enum {
 
 // layer.h
 typedef enum{
-    SSE, MASKED, L1, SEG, SMOOTH,WGAN
+    SSE, 
+    MASKED, 
+    L1, 
+    SEG, 
+    SMOOTH,
+    WGAN
 } COST_TYPE;
 
 // layer.h
@@ -648,13 +694,19 @@ struct layer {
     UNUSED_ENUM_TYPE bf_algo, bf_algo16;
     void* poolingDesc;
 #endif  // CUDNN
-//#endif  // GPU
 };
 
 
 // network.h
 typedef enum {
-    CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM, SGDR
+    CONSTANT, 
+    STEP, 
+    EXP, 
+    POLY, 
+    STEPS, 
+    SIG, 
+    RANDOM, 
+    SGDR
 } learning_rate_policy;
 
 
@@ -771,9 +823,9 @@ typedef struct network {
     float *cost;
     float clip;
 
-//#ifdef GPU
-    //float *input_gpu;
-    //float *truth_gpu;
+#ifdef GPU
+    float *data_input_gpu;
+    float *ground_truth_gpu;
     float *delta_gpu;
     float *output_gpu;
 
@@ -792,7 +844,7 @@ typedef struct network {
     float *global_delta_gpu;
     float *state_delta_gpu;
     size_t max_delta_gpu_size;
-//#endif  // GPU
+#endif  // GPU
     int optimized_memory;
     int dynamic_minibatch;
     size_t workspace_size_limit;
@@ -834,7 +886,7 @@ typedef struct image {
 //    float *data;
 //} image;
 
-// box.h
+// box.h center_x, center_y, width, height
 typedef struct box {
     float x, y, w, h;
 } box;
@@ -945,19 +997,7 @@ typedef struct box_label {
     float left, right, top, bottom;
 } box_label;
 
-// list.h
-//typedef struct node {
-//    void *val;
-//    struct node *next;
-//    struct node *prev;
-//} node;
 
-// list.h
-//typedef struct list {
-//    int size;
-//    node *front;
-//    node *back;
-//} list;
 
 // -----------------------------------------------------
 

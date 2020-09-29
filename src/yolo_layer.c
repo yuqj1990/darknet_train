@@ -896,7 +896,6 @@ void forward_yolo_layer_gpu(const layer l, network_state state)
     cpu_state.truth = truth_cpu;
     cpu_state.input = in_cpu;
     forward_yolo_layer(l, cpu_state);
-    //forward_yolo_layer(l, state);
     cuda_push_array(l.delta_gpu, l.delta, l.batch*l.outputs);
     free(in_cpu);
     if (cpu_state.truth) free(cpu_state.truth);

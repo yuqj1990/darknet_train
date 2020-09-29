@@ -261,7 +261,7 @@ void forward_ctdet_layer_gpu(const layer l, network net)
         cuda_pull_int_array(l.indexes_gpu,l.indexes,*l.num_detection);
         return;
     }
-    cuda_push_array(net.truth_gpu,net.truth,net.truths*net.batch);
+    cuda_push_array(net.truth_gpu,net.truth,net.truths);
     forward_ctdet_loss_layer_gpu(l,net);
 }
 

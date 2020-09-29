@@ -1610,9 +1610,7 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
 
     net.outputs = get_network_output_size(net);
     net.output = get_network_output(net);
-    net.input = calloc(net.inputs*net.batch, sizeof(float));
-    net.truth = calloc(net.truths*net.batch, sizeof(float));
-    
+
     avg_outputs = avg_outputs / avg_counter;
     fprintf(stderr, "Total BFLOPS %5.3f \n", bflops);
     fprintf(stderr, "avg_outputs = %d \n", avg_outputs);

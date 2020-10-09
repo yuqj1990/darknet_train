@@ -1005,14 +1005,74 @@ static int label_index(int w,int h,int classes ,int location, int entry)
     return  n*w*h*(classes+4) + entry*w*h + loc;
 }
 
+#define min(a, b) a >= b ? b : a
+#define max(a, b) a <= b ? b : a
+
+float gaussian_radius(const float heatmap_height, const float heatmap_width, const float min_overlap){
+
+    float a1  = 1.0;
+    float b1  = (heatmap_width + heatmap_height);
+    float c1  =  heatmap_width * heatmap_height * (1 - min_overlap) / (1 + min_overlap);
+    float sq1 = sqrt(b1 * b1 - 4 * a1 * c1);
+    float r1  = (b1 + sq1) / 2;
+
+    float a2  = 4.0;
+    float b2  = 2 * (heatmap_height + heatmap_width);
+    float c2  = (1 - min_overlap) * heatmap_width * heatmap_height;
+    float sq2 = sqrt(b2 * b2 - 4 * a2 * c2);
+    float r2  = (b2 + sq2) / 2;
+
+    float a3  = 4 * min_overlap;
+    float b3  = -2 * min_overlap * (heatmap_height + heatmap_width);
+    float c3  = (min_overlap - 1) * heatmap_width * heatmap_height;
+    float sq3 = sqrt(b3 * b3 - 4 * a3 * c3);
+    float r3  = (b3 + sq3) / 2;
+    return min(min(r1, r2), r3);
+}
+
+float* gaussian2D(const int height, const int width, float sigma){
+    int half_width = (width - 1) / 2;
+    int half_height = (height - 1) / 2;
+    float* heatmap = (float* )xcalloc(width *height, sizeof(float));
+    for(int i = 0; i < height; i++){
+        int x = i - half_height;
+        for(int j = 0; j < width; j++){
+            int y = j - half_width;
+            heatmap[i * width + j] = exp(-(x*x + y*y) / (2* sigma * sigma));
+            if(heatmap[i * width + j] < 0.00000000005)
+                heatmap[i * width + j] = 0.;
+        }
+    }
+    return heatmap;
+}
+
+void draw_umich_gaussian(float* heatmap, int center_x, int center_y, float radius
+                              , const int height, const int width){
+    float diameter = 2 * radius + 1;
+    float* gaussian = gaussian2D((int)diameter, (int)diameter, (float)(diameter / 6));
+    int left = min((int)center_x, (int)radius), right = min((int)(width - center_x), (int)radius + 1);
+    int top = min((int)center_y, (int)radius), bottom = min((int)(height - center_y), (int)radius + 1);
+    if((left + right) > 0 && (top + bottom) > 0){
+        for(int row = 0; row < (top + bottom); row++){
+            for(int col = 0; col < (right + left); col++){
+                int heatmap_index = ((int)center_y -top + row) * width + (int)center_x -left + col;
+                int gaussian_index = ((int)radius - top + row) * (int)diameter + (int)radius - left + col;
+                heatmap[heatmap_index] = heatmap[heatmap_index] >= gaussian[gaussian_index]  ? heatmap[heatmap_index]:
+                                            gaussian[gaussian_index];
+            }
+        }
+    }
+    free(gaussian);
+}
+
 void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int classes,int out_h,int out_w)
 {
     float x,y,w,h;
     int id;
     int i;
     int obj_index,obj_x,obj_y,obj_w,obj_h;
-    int x_min,y_min,x_max,y_max,index_i,index_j;
-    float s_x,s_y,class_label;
+    //int x_min,y_min,x_max,y_max,index_i,index_j;
+    //float s_x,s_y,class_label;
     for (i = 0; i < count; ++i) {
         x =  boxes[i*5 + 0];
         y =  boxes[i*5 + 1];
@@ -1024,7 +1084,7 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         if(w == 0 || h == 0 || out_w < 1 || out_h < 1){
             continue;
         }
-        x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
+        //x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
         
         obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,id);
         truth[obj_index + 0 * (out_h*out_w)] = x;
@@ -1032,6 +1092,7 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         truth[obj_index + 2 * (out_h*out_w)] = w;
         truth[obj_index + 3 * (out_h*out_w)] = h;
         //printf("x: %f, y: %f, w: %f, h: %f, id: %d, obj_h_index: %d\n", x, y, w,h, id, obj_index + (classes + 3)*(out_h*out_w));
+        /*
         s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
         s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
         for(index_j=y_min;index_j<y_max;++index_j){
@@ -1042,6 +1103,10 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
                                                         truth[obj_index + (4+id) * (out_h * out_w)];
             }
         }
+        */
+        float radius = gaussian_radius(obj_h, obj_w, 0.7);
+        radius = max(0., radius);
+        draw_umich_gaussian(truth + (4+id) * (out_h * out_w), obj_x, obj_y, radius, out_h, out_w );
     }
 }
 
@@ -1049,7 +1114,7 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
 data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int classes, 
                         int use_flip, int use_gaussian_noise, int use_blur, int use_mixup,
                         float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, 
-                        int track, int augment_speed, int letter_box, int show_imgs, data_type dtype_)
+                        int track, int augment_speed, int letter_box, int show_imgs, data_type float_)
 {
     const int random_index = random_gen();
     c = c ? c : 3;
@@ -1349,14 +1414,14 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
         }
         if (random_paths) free(random_paths);
     }
-    if(dtype_ == CTDET_DATA){
+    if(float_ == CTDET_DATA){
         int out_h = h / 4;
         int out_w = w / 4; 
         d.y = make_matrix(n, (4 + classes) * out_w * out_h);
         for(int i_d = 0; i_d < n; i_d++){
             fill_ctdet_truth_detection(temp.vals[i_d], boxes, d.y.vals[i_d], classes, out_h, out_w);
         }
-    }else if(dtype_ == DETECTION_DATA){
+    }else if(float_ == DETECTION_DATA){
         d.y = make_matrix(n, 5 * boxes);
         copy_matrix(temp, d.y);
     }
@@ -1374,7 +1439,7 @@ void blend_images(image new_img, float alpha, image old_img, float beta)
 }
 
 data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int classes, int use_flip, int gaussian_noise, int use_blur, int use_mixup,
-    float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, int track, int augment_speed, int letter_box, int show_imgs, data_type dtype_)
+    float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, int track, int augment_speed, int letter_box, int show_imgs, data_type float_)
 {
     const int random_index = random_gen();
     c = c ? c : 3;
@@ -1440,15 +1505,15 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
             if (!augmentation_calculated || !track)
             {
                 augmentation_calculated = 1;
-                resize_r1 = random_float();
-                resize_r2 = random_float();
+                resize_r1 = random_);
+                resize_r2 = random_);
 
-                r1 = random_float();
-                r2 = random_float();
-                r3 = random_float();
-                r4 = random_float();
+                r1 = random_);
+                r2 = random_);
+                r3 = random_);
+                r4 = random_);
 
-                r_scale = random_float();
+                r_scale = random_);
 
                 dhue = rand_uniform_strong(-hue, hue);
                 dsat = rand_scale(saturation);

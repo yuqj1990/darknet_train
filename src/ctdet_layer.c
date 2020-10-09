@@ -152,11 +152,15 @@ float delta_ctdet_box(box truth, float *x, int index, int i, int j, int lw, int 
     float ty = truth.y*lh - j;
     float tw = log(truth.w*lw);
     float th = log(truth.h*lh);
-    float temp_loss = 0;
-    temp_loss += smoothL1_Loss(x[index + 0*stride] - tx, &delta[index + 0*stride]);
-    temp_loss += smoothL1_Loss(x[index + 1*stride] - ty, &delta[index + 1*stride]);
-    temp_loss += smoothL1_Loss(x[index + 2*stride] - tw, &delta[index + 2*stride]);
-    temp_loss += smoothL1_Loss(x[index + 3*stride] - th, &delta[index + 3*stride]);
+    float temp_loss = 0, delta_x = 0, delta_y = 0, delta_w = 0, delta_h = 0;
+    temp_loss += smoothL1_Loss(x[index + 0 * stride] - tx, &delta_x);
+    temp_loss += smoothL1_Loss(x[index + 1 * stride] - ty, &delta_y);
+    temp_loss += smoothL1_Loss(x[index + 2 * stride] - tw, &delta_w);
+    temp_loss += smoothL1_Loss(x[index + 3 * stride] - th, &delta_h);
+    delta[index + 0 * stride] = delta_x;
+    delta[index + 1 * stride] = delta_y;
+    delta[index + 2 * stride] = delta_w;
+    delta[index + 3 * stride] = delta_h;
     *box_loss = temp_loss;
     return iou;
 }
@@ -171,7 +175,7 @@ static int entry_index(layer l, int batch, int location, int entry)
 
 void forward_ctdet_layer(const layer l, network_state state)
 {
-    int i,j,b,cl;
+    int i,j,b,cl, loss;
     memcpy(l.output, state.input, l.outputs*l.batch*sizeof(float));
     #ifndef GPU
     for (b = 0; b < l.batch; ++b){
@@ -211,10 +215,10 @@ void forward_ctdet_layer(const layer l, network_state state)
                                                     (1 - prob_obj));
                         int box_index = entry_index(l, b, j * l.w + i, 0);
                         box truth = float_to_box_stride(state.truth +box_index, l.w*l.h);
-                        float loss = 0;
+                        loss = 0;
                         float iou = delta_ctdet_box(truth, l.output, box_index, i, j, l.w, l.h, l.delta, l.w*l.h, &loss);
                         avg_obj += prob_obj;
-                        avg_iou+=iou;
+                        avg_iou += iou;
                         box_cost += loss;
                         if(iou > .5) recall += 1;
                         if(iou > .75) recall75 += 1;
@@ -225,8 +229,8 @@ void forward_ctdet_layer(const layer l, network_state state)
         }
     }
     *(l.cost) = (box_cost + class_cost);
-    printf("Region %d Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", 
-                        state.index, avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
+    printf("Region %d loss %f, Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", 
+                        state.index, *(l.cost), avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
 }
 
 void backward_ctdet_layer(const layer l, network_state state)

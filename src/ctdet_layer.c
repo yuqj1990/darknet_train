@@ -198,13 +198,13 @@ void forward_ctdet_layer(const layer l, network_state state)
                     int obj_index = entry_index(l, b, j * l.w + i,4 + cl);
                     float label=state.truth[obj_index];
                     float prob_obj = l.output[obj_index];
-                    if(label<1) {
+                    if(label < 1) {
                         class_cost -= pow(1 - label, gamma_) * pow(prob_obj, alpha) * log(1 - prob_obj);
                         l.delta[obj_index] = pow(prob_obj, alpha) * pow(1 - label, gamma_) *
                                                  (prob_obj - alpha * (1 - prob_obj) * log(1 - prob_obj));
                         avg_anyobj += prob_obj;
 
-                    }else if (label==1){
+                    }else if (label == 1){
                         class_cost -= pow(1 - prob_obj, alpha) * log(prob_obj);
                         l.delta[obj_index] = pow(1 - prob_obj, alpha) * (alpha * prob_obj* log(prob_obj) - 
                                                     (1 - prob_obj));
@@ -223,10 +223,7 @@ void forward_ctdet_layer(const layer l, network_state state)
             }
         }
     }
-    //if(count >0)
-    //    *(l.cost) = (box_cost + class_cost) / count;
-    //else
-        *(l.cost) = (box_cost + class_cost);
+    *(l.cost) = (box_cost + class_cost);
     printf("Region %d Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", state.index , avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
 }
 

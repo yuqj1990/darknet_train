@@ -1038,8 +1038,7 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
             for(index_i=x_min;index_i<x_max;++index_i){
                 class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
                 obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,id);
-                
-                truth[obj_index + (4+id) * (out_h * out_w)]=(class_label >= truth[obj_index + (4+id) * (out_h * out_w)]) ? class_label : 
+                truth[obj_index + (4+id) * (out_h * out_w)] = (class_label >= truth[obj_index + (4+id) * (out_h * out_w)]) ? class_label : 
                                                         truth[obj_index + (4+id) * (out_h * out_w)];
             }
         }
@@ -1123,10 +1122,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
             int dw = (ow*jitter);
             int dh = (oh*jitter);
-            resize = 1;
-            jitter = 0.2;
-
-
+            
             float resize_down = resize, resize_up = resize;
             if (resize_down > 1.0) resize_down = 1 / resize_down;
             int min_rdw = ow*(1 - (1 / resize_down)) / 2;   // < 0

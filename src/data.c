@@ -1071,8 +1071,6 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
     int id;
     int i;
     int obj_index,obj_x,obj_y,obj_w,obj_h;
-    //int x_min,y_min,x_max,y_max,index_i,index_j;
-    //float s_x,s_y,class_label;
     for (i = 0; i < count; ++i) {
         x =  boxes[i*5 + 0];
         y =  boxes[i*5 + 1];
@@ -1083,30 +1081,16 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         obj_x=x*out_w,obj_y=y*out_h,obj_w=w*out_w,obj_h=h*out_h;
         if(w == 0 || h == 0 || out_w < 1 || out_h < 1){
             continue;
-        }
-        //x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
-        
+        }        
         obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,id);
         truth[obj_index + 0 * (out_h*out_w)] = x;
         truth[obj_index + 1 * (out_h*out_w)] = y;
         truth[obj_index + 2 * (out_h*out_w)] = w;
         truth[obj_index + 3 * (out_h*out_w)] = h;
         //printf("x: %f, y: %f, w: %f, h: %f, id: %d, obj_h_index: %d\n", x, y, w,h, id, obj_index + (classes + 3)*(out_h*out_w));
-        /*
-        s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
-        s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
-        for(index_j=y_min;index_j<y_max;++index_j){
-            for(index_i=x_min;index_i<x_max;++index_i){
-                class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
-                obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,id);
-                truth[obj_index + (4+id) * (out_h * out_w)] = (class_label >= truth[obj_index + (4+id) * (out_h * out_w)]) ? class_label : 
-                                                        truth[obj_index + (4+id) * (out_h * out_w)];
-            }
-        }
-        */
         float radius = gaussian_radius(obj_h, obj_w, 0.7);
         radius = max(0., radius);
-        draw_umich_gaussian(truth + (4+id) * (out_h * out_w), obj_x, obj_y, radius, out_h, out_w );
+        draw_umich_gaussian(truth + (4 + id) * (out_h * out_w), obj_x, obj_y, radius, out_h, out_w );
     }
 }
 

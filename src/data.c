@@ -1053,7 +1053,6 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 {
     const int random_index = random_gen();
     c = c ? c : 3;
-
     if (use_mixup == 2 || use_mixup == 4) {
         printf("\n cutmix=1 - isn't supported for Detector (use cutmix=1 only for Classifier) \n");
         if (check_mistakes) getchar();
@@ -1353,7 +1352,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
     if(dtype_ == CTDET_DATA){
         int out_h = h / 4;
         int out_w = w / 4; 
-        d.y = make_matrix(n, (classes + 4) * out_w * out_h);
+        d.y = make_matrix(n, (4 + classes) * out_w * out_h);
         for(int i_d = 0; i_d < n; i_d++){
             fill_ctdet_truth_detection(temp.vals[i_d], boxes, d.y.vals[i_d], classes, out_h, out_w);
         }

@@ -249,7 +249,7 @@ layer parse_ctdet(list *options, size_params params)
     layer l = make_ctdet_layer(params.batch, params.w, params.h, classes,size,stride,padding);
     assert(l.outputs == params.inputs);
 
-    l.max_boxes = option_find_int_quiet(options, "max",90);
+    l.max_boxes = option_find_int_quiet(options, "max",200);
     l.jitter = option_find_float(options, "jitter", .2);
     l.random = option_find_int_quiet(options, "random", 0);
     l.hm_weight = option_find_float(options, "hm", 1.);

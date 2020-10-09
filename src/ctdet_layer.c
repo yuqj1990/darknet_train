@@ -85,7 +85,7 @@ void resize_ctdet_layer(layer *l, int w, int h)
 
     if (!l->output_pinned) l->output = (float*)xrealloc(l->output, l->batch*l->outputs * sizeof(float));
     if (!l->delta_pinned) l->delta = (float*)xrealloc(l->delta, l->batch*l->outputs*sizeof(float));
-    l->indexes = (float*)xrealloc(l->indexes, l->batch*l->outputs*sizeof(int));
+    l->indexes = (int*)xrealloc(l->indexes, l->batch*l->outputs*sizeof(int));
 
 #ifdef GPU
 
@@ -175,7 +175,8 @@ static int entry_index(layer l, int batch, int location, int entry)
 
 void forward_ctdet_layer(const layer l, network_state state)
 {
-    int i,j,b,cl, loss;
+    int i,j,b,cl;
+    float loss;
     memcpy(l.output, state.input, l.outputs*l.batch*sizeof(float));
     #ifndef GPU
     for (b = 0; b < l.batch; ++b){
@@ -229,8 +230,9 @@ void forward_ctdet_layer(const layer l, network_state state)
         }
     }
     *(l.cost) = (box_cost + class_cost);
-    printf("Region %d loss %f, Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", 
-                        state.index, *(l.cost), avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
+    printf("box_cost: %f, class_cost: %f\n", box_cost, class_cost);
+    printf("Region %d, Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", 
+                        state.index, avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
 }
 
 void backward_ctdet_layer(const layer l, network_state state)

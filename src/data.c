@@ -1097,6 +1097,8 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         #else
         s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
         s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
+        //printf("s_x: %f, s_y: %f\n", s_x, s_y);
+        x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
         for(index_j=y_min;index_j<y_max;++index_j){
             for(index_i=x_min;index_i<x_max;++index_i){
                 class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));

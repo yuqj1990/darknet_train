@@ -523,15 +523,16 @@ void show_cuda_cudnn_info()
 int *cuda_make_int_array_ctdet(int *x, size_t n)
 {
     int *x_gpu;
-    size_t size = sizeof(int)*n;
-    cudaError_t status = cudaMalloc((void **)&x_gpu, size);
-    check_error(status);
-    if(x){
-        status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
-        check_error(status);
-    }
-    if(!x_gpu) error("Cuda malloc failed\n");
-    return x_gpu;
+	size_t size = sizeof(int)*n;
+	cudaError_t status = cudaMalloc((void **)&x_gpu, size);
+    CHECK_CUDA(status);
+	if (x) {
+		//status = cudaMemcpy(x_gpu, x, size, cudaMemcpyHostToDevice);
+        cudaError_t status = cudaMemcpyAsync(x_gpu, x, size, cudaMemcpyHostToDevice, get_cuda_stream());
+        CHECK_CUDA(status);
+	}
+	if (!x_gpu) error("Cuda malloc failed\n");
+	return x_gpu;
 }
 
 void cuda_pull_int_array(int *x_gpu, int *x, size_t n)

@@ -1548,7 +1548,6 @@ image load_image_stb_resize(char *filename, int w, int h, int c)
 image load_image(char *filename, int w, int h, int c)
 {
 #ifdef OPENCV
-    //image out = load_image_stb(filename, c);
     image out = load_image_cv(filename, c);
 #else
     image out = load_image_stb(filename, c);    // without OpenCV

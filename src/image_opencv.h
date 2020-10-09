@@ -102,6 +102,9 @@ image image_data_augmentation(mat_cv* mat, int w, int h,
     float dhue, float dsat, float dexp,
     int gaussian_noise, int blur, int num_boxes, float *truth);
 
+// Data image Jitter
+void place_image_cv(mat_cv* img, int w, int h, int dx, int dy, image canvas); 
+
 // blend two images with (alpha and beta)
 void blend_images_cv(image new_img, float alpha, image old_img, float beta);
 

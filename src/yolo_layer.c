@@ -447,6 +447,7 @@ void forward_yolo_layer(const layer l, network_state state)
         }
         for (t = 0; t < l.max_boxes; ++t) {
             box truth = float_to_box_stride(state.truth + t*(4 + 1) + b*l.truths, 1);
+            //printf("x: %f, y: %f, w: %f, h: %f\n", truth.x, truth.y, truth.w, truth.h);
             if (truth.x < 0 || truth.y < 0 || truth.x > 1 || truth.y > 1 || truth.w < 0 || truth.h < 0) {
                 char buff[256];
                 printf(" Wrong label: truth.x = %f, truth.y = %f, truth.w = %f, truth.h = %f \n", truth.x, truth.y, truth.w, truth.h);
@@ -691,43 +692,6 @@ void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, int neth
         dets[i].bbox = b;
     }
 }
-
-/*
-void correct_yolo_boxes(detection *dets, int n, int w, int h, int netw, int neth, int relative, int letter)
-{
-    int i;
-    int new_w=0;
-    int new_h=0;
-    if (letter) {
-        if (((float)netw / w) < ((float)neth / h)) {
-            new_w = netw;
-            new_h = (h * netw) / w;
-        }
-        else {
-            new_h = neth;
-            new_w = (w * neth) / h;
-        }
-    }
-    else {
-        new_w = netw;
-        new_h = neth;
-    }
-    for (i = 0; i < n; ++i){
-        box b = dets[i].bbox;
-        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw);
-        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth);
-        b.w *= (float)netw/new_w;
-        b.h *= (float)neth/new_h;
-        if(!relative){
-            b.x *= w;
-            b.w *= w;
-            b.y *= h;
-            b.h *= h;
-        }
-        dets[i].bbox = b;
-    }
-}
-*/
 
 int yolo_num_detections(layer l, float thresh)
 {

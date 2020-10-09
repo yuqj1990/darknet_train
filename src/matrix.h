@@ -21,6 +21,8 @@ matrix make_matrix(int rows, int cols);
 void free_matrix(matrix m);
 void print_matrix(matrix m);
 
+void copy_matrix(matrix src, matrix dist);
+
 matrix csv_to_matrix(char *filename);
 void matrix_to_csv(matrix m);
 matrix hold_out_matrix(matrix *m, int n);
@@ -30,6 +32,8 @@ void scale_matrix(matrix m, float scale);
 matrix resize_matrix(matrix m, int size);
 
 float *pop_column(matrix *m, int c);
+
+box_label* martix_to_box(matrix src, int row, int size);
 
 #ifdef __cplusplus
 }

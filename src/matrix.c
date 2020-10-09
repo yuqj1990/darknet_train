@@ -298,6 +298,28 @@ void copy(float *x, float *y, int n)
     for (i = 0; i < n; ++i) y[i] = x[i];
 }
 
+void copy_matrix(matrix src, matrix dist){
+    assert(src.rows == dist.rows);
+    assert(src.cols == dist.cols);
+    for(int r = 0; r < src.rows; r++){
+        copy(src.vals[r], dist.vals[r],src.cols);
+    }
+}
+
+box_label* martix_to_box(matrix src, int row, int size){
+    box_label *boxes = xcalloc(size, sizeof(box_label));
+    int count = 0;
+    for(int i= 0; i < size; i++){
+        boxes[count].x = src.vals[row][i*5 + 0];
+        boxes[count].y = src.vals[row][i*5 + 1];
+        boxes[count].w = src.vals[row][i*5 + 2];
+        boxes[count].h = src.vals[row][i*5 + 3];
+        boxes[count].id = src.vals[row][i*5 + 4];
+        ++count;
+    }
+    return boxes;
+}
+
 model do_kmeans(matrix data, int k)
 {
     matrix centers = make_matrix(k, data.cols);

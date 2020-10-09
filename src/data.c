@@ -449,122 +449,6 @@ int fill_truth_detection(const char *path, int num_boxes, float *truth, int clas
 }
 
 
-static int label_index(int w,int h,int classes ,int location, int entry)
-{
-    int n =   location / (w*h);
-    int loc = location % (w*h);
-    return  n*w*h*(classes+4) + entry*w*h + loc;
-}
-
-void fill_ctdet_truth_detection(char *path, int num_boxes, float *truth, int classes,int out_h,int out_w,int flip, float dx, float dy, float sx, float sy)
-{
-    char labelpath[4096];
-    find_replace(path, "images", "labels", labelpath);
-    find_replace(labelpath, "JPEGImages", "labels", labelpath);
-
-    find_replace(labelpath, "raw", "labels", labelpath);
-    find_replace(labelpath, ".jpg", ".txt", labelpath);
-    find_replace(labelpath, ".png", ".txt", labelpath);
-    find_replace(labelpath, ".JPG", ".txt", labelpath);
-    find_replace(labelpath, ".JPEG", ".txt", labelpath);
-    int count = 0;
-    box_label *boxes = read_boxes(labelpath, &count);
-    randomize_boxes(boxes, count);
-    correct_boxes(boxes, count, dx, dy, sx, sy, flip);
-    if(count > num_boxes) count = num_boxes;
-    float x,y,w,h;
-    int id;
-    int i;
-    int sub = 0;
-    int obj_index,obj_x,obj_y,obj_w,obj_h;
-    int x_min,y_min,x_max,y_max,index_i,index_j;
-    float s_x,s_y,class_label;
-    memset(truth,0,out_h*out_w*(classes+4)* sizeof(float));
-    for (i = 0; i < count; ++i) {
-        x =  boxes[i].x;
-        y =  boxes[i].y;
-        w =  boxes[i].w;
-        h =  boxes[i].h;
-        id = boxes[i].id;
-        obj_x=x*out_w,obj_y=y*out_h,obj_w=w*out_w,obj_h=h*out_h;
-        if ((out_w < 1 || out_h < 1)) {
-            ++sub;
-            continue;
-        }
-        x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
-        obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,classes);
-        truth[obj_index + (classes + 0)*(out_h*out_w)] = x;
-        truth[obj_index + (classes + 1)*(out_h*out_w)] = y;
-        truth[obj_index + (classes + 2)*(out_h*out_w)] = w;
-        truth[obj_index + (classes + 3)*(out_h*out_w)] = h;
-        s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
-        s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
-        for(index_j=y_min;index_j<y_max;++index_j)
-            for(index_i=x_min;index_i<x_max;++index_i)
-            {
-                class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
-                obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,id);
-                truth[obj_index + id * (out_h*out_w)]=(class_label >= truth[obj_index + id * (out_h*out_w)] ? class_label : 
-                                                        truth[obj_index+ id * (out_h*out_w)]);
-            }
-    }
-    free(boxes);
-}
-
-data load_ctdet_detection(int n, char **paths, int m, int w, int h, int boxes, int classes, float jitter, float hue, float saturation, float exposure)
-{
-    char **random_paths = get_random_paths(paths, n, m);
-    int i;
-    int out_w=w / 4,out_h=h / 4;
-    data d = {0};
-    d.shallow = 0;
-
-    d.X.rows = n;
-    d.X.vals = calloc(d.X.rows, sizeof(float*));
-    d.X.cols = h*w*3;
-
-    d.y = make_matrix(n, (classes+4)*out_w*out_h);
-    for(i = 0; i < n; ++i){
-        image orig = load_image_color(random_paths[i], 0, 0);
-        image sized = make_image(w, h, orig.c);
-        fill_image(sized, .5);
-
-        float dw = jitter * orig.w;
-        float dh = jitter * orig.h;
-
-        float new_ar = (orig.w + rand_uniform(-dw, dw)) / (orig.h + rand_uniform(-dh, dh));
-        //float scale = rand_uniform(.25, 2);
-        float scale = 1;
-
-        float nw, nh;
-
-        if(new_ar < 1){
-            nh = scale * h;
-            nw = nh * new_ar;
-        } else {
-            nw = scale * w;
-            nh = nw / new_ar;
-        }
-
-        float dx = rand_uniform(0, w - nw);
-        float dy = rand_uniform(0, h - nh);
-
-        place_image(orig, nw, nh, dx, dy, sized);
-
-        random_distort_image(sized, hue, saturation, exposure);
-
-        int flip = rand()%2;
-        if(flip) flip_image(sized);
-        d.X.vals[i] = sized.data;
-
-
-        fill_ctdet_truth_detection(random_paths[i], boxes, d.y.vals[i], classes, out_h , out_w , flip, -dx/w, -dy/h, nw/w, nh/h);
-
-        free_image(orig);
-    }
-    free(random_paths);
-    return d;
-}
 
 
 void print_letters(float *pred, int n)
@@ -1114,9 +998,59 @@ void blend_truth_mosaic(float *new_truth, int boxes, float *old_truth, int w, in
 #ifdef OPENCV
 
 #include "http_stream.h"
+static int label_index(int w,int h,int classes ,int location, int entry)
+{
+    int n =   location / (w*h);
+    int loc = location % (w*h);
+    return  n*w*h*(classes+4) + entry*w*h + loc;
+}
 
-data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int classes, int use_flip, int use_gaussian_noise, int use_blur, int use_mixup,
-    float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, int track, int augment_speed, int letter_box, int show_imgs)
+void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int classes,int out_h,int out_w)
+{
+    float x,y,w,h;
+    int id;
+    int i;
+    int obj_index,obj_x,obj_y,obj_w,obj_h;
+    int x_min,y_min,x_max,y_max,index_i,index_j;
+    float s_x,s_y,class_label;
+    for (i = 0; i < count; ++i) {
+        x =  boxes[i*5 + 0];
+        y =  boxes[i*5 + 1];
+        w =  boxes[i*5 + 2];
+        h =  boxes[i*5 + 3];
+        id = boxes[i*5 + 4];
+        
+        obj_x=x*out_w,obj_y=y*out_h,obj_w=w*out_w,obj_h=h*out_h;
+        if(w == 0 || h == 0 || out_w < 1 || out_h < 1){
+            continue;
+        }
+        x_min = obj_x-obj_w/2,y_min = obj_y-obj_h/2,x_max = obj_x+obj_w/2,y_max = obj_y+obj_h/2;
+        
+        obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,id);
+        truth[obj_index + 0 * (out_h*out_w)] = x;
+        truth[obj_index + 1 * (out_h*out_w)] = y;
+        truth[obj_index + 2 * (out_h*out_w)] = w;
+        truth[obj_index + 3 * (out_h*out_w)] = h;
+        //printf("x: %f, y: %f, w: %f, h: %f, id: %d, obj_h_index: %d\n", x, y, w,h, id, obj_index + (classes + 3)*(out_h*out_w));
+        s_x = 2*pow((((obj_w-1)*0.5-1)*0.3+0.8)*0.5,2);
+        s_y = 2*pow((((obj_h-1)*0.5-1)*0.3+0.8)*0.5,2);
+        for(index_j=y_min;index_j<y_max;++index_j){
+            for(index_i=x_min;index_i<x_max;++index_i){
+                class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
+                obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,id);
+                
+                truth[obj_index + (4+id) * (out_h * out_w)]=(class_label >= truth[obj_index + (4+id) * (out_h * out_w)]) ? class_label : 
+                                                        truth[obj_index + (4+id) * (out_h * out_w)];
+            }
+        }
+    }
+}
+
+
+data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int classes, 
+                        int use_flip, int use_gaussian_noise, int use_blur, int use_mixup,
+                        float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, 
+                        int track, int augment_speed, int letter_box, int show_imgs, data_type dtype_)
 {
     const int random_index = random_gen();
     c = c ? c : 3;
@@ -1133,7 +1067,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
         exit(0);
     }
     if (random_gen() % 2 == 0) use_mixup = 0;
-    int i;
+    int i = 0;
 
     int *cut_x = NULL, *cut_y = NULL;
     if (use_mixup == 3) {
@@ -1153,12 +1087,13 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
     d.X.vals = (float**)xcalloc(d.X.rows, sizeof(float*));
     d.X.cols = h*w*c;
 
-    float r1 = 0, r2 = 0, r3 = 0, r4 = 0, r_scale = 0;
+    float r1 = 0, r2 = 0, r3 = 0, r4 = 0;
     float resize_r1 = 0, resize_r2 = 0;
     float dhue = 0, dsat = 0, dexp = 0, flip = 0, blur = 0;
     int augmentation_calculated = 0, gaussian_noise = 0;
 
-    d.y = make_matrix(n, 5*boxes);
+    //d.y = make_matrix(n, 5*boxes);
+    matrix temp = make_matrix(n, 5*boxes);
     int i_mixup = 0;
     for (i_mixup = 0; i_mixup <= use_mixup; i_mixup++) {
         if (i_mixup) augmentation_calculated = 0;   // recalculate augmentation for the 2nd sequence if(track==1)
@@ -1188,6 +1123,9 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
             int dw = (ow*jitter);
             int dh = (oh*jitter);
+            resize = 1;
+            jitter = 0.2;
+
 
             float resize_down = resize, resize_up = resize;
             if (resize_down > 1.0) resize_down = 1 / resize_down;
@@ -1209,8 +1147,6 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                 r2 = random_float();
                 r3 = random_float();
                 r4 = random_float();
-
-                r_scale = random_float();
 
                 dhue = rand_uniform_strong(-hue, hue);
                 dsat = rand_scale(saturation);
@@ -1248,7 +1184,8 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                 pbot += rand_precalc_random(min_rdh, max_rdh, resize_r2);
             }
 
-            //printf("\n pleft = %d, pright = %d, ptop = %d, pbot = %d, ow = %d, oh = %d \n", pleft, pright, ptop, pbot, ow, oh);
+            //printf("\n  down = %f, up = %f, pleft = %d, pright = %d, ptop = %d, pbot = %d, ow = %d, oh = %d, dw: %d, dh: %d, min_rdw:%d max_rdw: %d, min_rdh: %d, max_rdh: %d \n", 
+            //        (1 - (1 / resize_down)) / 2, (1 - (1 / resize_up)) / 2, pleft, pright, ptop, pbot, ow, oh, dw, dh, min_rdw, max_rdw, min_rdh, max_rdh);
 
             //float scale = rand_precalc_random(.25, 2, r_scale); // unused currently
 
@@ -1315,12 +1252,12 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
             if (use_mixup == 0) {
                 d.X.vals[i] = ai.data;
-                memcpy(d.y.vals[i], truth, 5 * boxes * sizeof(float));
+                memcpy(temp.vals[i], truth, 5 * boxes * sizeof(float));
             }
             else if (use_mixup == 1) {
                 if (i_mixup == 0) {
                     d.X.vals[i] = ai.data;
-                    memcpy(d.y.vals[i], truth, 5 * boxes * sizeof(float));
+                    memcpy(temp.vals[i], truth, 5 * boxes * sizeof(float));
                 }
                 else if (i_mixup == 1) {
                     image old_img = make_empty_image(w, h, c);
@@ -1329,7 +1266,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                     //show_image(old_img, "old");
                     //wait_until_press_key_cv();
                     blend_images_cv(ai, 0.5, old_img, 0.5);
-                    blend_truth(d.y.vals[i], boxes, truth);
+                    blend_truth(temp.vals[i], boxes, truth);
                     free_image(old_img);
                     d.X.vals[i] = ai.data;
                 }
@@ -1353,7 +1290,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                 const int bot_shift = min_val_cmp(h - cut_y[i], max_val_cmp(0, (-pbot*h / oh)));
 
 
-                int k, x, y;
+                int k, y;
                 for (k = 0; k < c; ++k) {
                     for (y = 0; y < h; ++y) {
                         int j = y*w + k*w*h;
@@ -1376,7 +1313,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                     }
                 }
 
-                blend_truth_mosaic(d.y.vals[i], boxes, truth, w, h, cut_x[i], cut_y[i], i_mixup, left_shift, right_shift, top_shift, bot_shift);
+                blend_truth_mosaic(temp.vals[i], boxes, truth, w, h, cut_x[i], cut_y[i], i_mixup, left_shift, right_shift, top_shift, bot_shift);
 
                 free_image(ai);
                 ai.data = d.X.vals[i];
@@ -1391,7 +1328,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                 sprintf(buff, "aug_%d_%d_%d", random_index, i, random_gen());
                 int t;
                 for (t = 0; t < boxes; ++t) {
-                    box b = float_to_box_stride(d.y.vals[i] + t*(4 + 1), 1);
+                    box b = float_to_box_stride(temp.vals[i] + t*(4 + 1), 1);
                     if (!b.x) break;
                     int left = (b.x - b.w / 2.)*ai.w;
                     int right = (b.x + b.w / 2.)*ai.w;
@@ -1417,8 +1354,18 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
         }
         if (random_paths) free(random_paths);
     }
-
-
+    if(dtype_ == CTDET_DATA){
+        int out_h = h / 4;
+        int out_w = w / 4; 
+        d.y = make_matrix(n, (classes + 4) * out_w * out_h);
+        for(int i_d = 0; i_d < n; i_d++){
+            fill_ctdet_truth_detection(temp.vals[i_d], boxes, d.y.vals[i_d], classes, out_h, out_w);
+        }
+    }else if(dtype_ == DETECTION_DATA){
+        d.y = make_matrix(n, 5 * boxes);
+        copy_matrix(temp, d.y);
+    }
+    free_matrix(temp);
     return d;
 }
 #else    // OPENCV
@@ -1645,11 +1592,9 @@ void *load_thread(void *ptr)
         *a.d = load_data_writing(a.paths, a.n, a.m, a.w, a.h, a.out_w, a.out_h);
     } else if (a.type == REGION_DATA){
         *a.d = load_data_region(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.hue, a.saturation, a.exposure);
-    } else if (a.type == DETECTION_DATA){
+    } else if (a.type == DETECTION_DATA || a.type == CTDET_DATA){
         *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.c, a.num_boxes, a.classes, a.flip, a.gaussian_noise, a.blur, a.mixup, a.jitter, a.resize,
             a.hue, a.saturation, a.exposure, a.mini_batch, a.track, a.augment_speed, a.letter_box, a.show_imgs, a.type);
-    } else if (a.type == CTDET_DATA){
-        *a.d = load_ctdet_detection(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.hue, a.saturation, a.exposure);
     } else if (a.type == SWAG_DATA){
         *a.d = load_data_swag(a.paths, a.n, a.classes, a.jitter);
     } else if (a.type == COMPARE_DATA){
@@ -1736,7 +1681,6 @@ void *load_threads(void *ptr)
     for (i = 0; i < args.threads; ++i) {
         args.d = buffers + i;
         args.n = (i + 1) * total / args.threads - i * total / args.threads;
-
         pthread_mutex_lock(&mtx_load_data);
         args_swap[i] = args;
         pthread_mutex_unlock(&mtx_load_data);
@@ -1761,6 +1705,8 @@ void *load_threads(void *ptr)
 
     *out = concat_datas(buffers, args.threads);
     out->shallow = 0;
+    //printf("img data rows: %d, cols: %d\n", out->X.rows, out->X.cols);
+    //printf("img truth rows: %d, cols: %d\n", out->y.rows, out->y.cols);
     for(i = 0; i < args.threads; ++i){
         buffers[i].shallow = 1;
         free_data(buffers[i]);

@@ -255,10 +255,11 @@ layer parse_ctdet(list *options, size_params params)
     l.hm_weight = option_find_float(options, "hm", 1.);
     l.off_weight = option_find_float(options, "off", 1.);
     l.wh_weight = option_find_float(options, "wh", 0.1);
-
+    l.resize = option_find_float_quiet(options, "resize", 1.0);
     char *map_file = option_find_str(options, "map", 0);
     if (map_file) l.map = read_map(map_file);
-
+    fprintf(stderr, "                                       ");
+    fprintf(stderr, " -> %4d x%4d x%4d \n", l.out_w, l.out_h, l.out_c);
     return l;
 }
 

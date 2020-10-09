@@ -217,7 +217,7 @@ char *get_layer_string(LAYER_TYPE a)
         case GAUSSIAN_YOLO:
             return "Gaussian_yolo";
         case CTDET:
-            return "ctdet"
+            return "ctdet";
         case DROPOUT:
             return "dropout";
         case CROP:

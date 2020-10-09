@@ -83,7 +83,7 @@ layer make_gaussian_yolo_layer(int batch, int w, int h, int n, int total, int *m
 
 #endif
 
-    //fprintf(stderr, "Gaussian_yolo\n");
+    fprintf(stderr, "Gaussian_yolo\n");
     srand(time(0));
 
     return l;

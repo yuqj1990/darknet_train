@@ -126,7 +126,7 @@ extern "C" mat_cv *load_image_mat_cv(const char *filename, int flag)
         return (mat_cv *)mat_ptr;
     }
     catch (...) {
-        cerr << "OpenCV exception: load_image_mat_cv \n";
+        cerr << filename<<", OpenCV exception: load_image_mat_cv";
     }
     if (mat_ptr) delete mat_ptr;
     return NULL;
@@ -187,6 +187,29 @@ extern "C" image load_image_resize(char *filename, int w, int h, int c, image *i
     return out;
 }
 // ----------------------------------------
+
+static void set_pixel_cv(image m, int x, int y, int c, float val)
+{
+    if (x < 0 || y < 0 || c < 0 || x >= m.w || y >= m.h || c >= m.c) return;
+    assert(x < m.w && y < m.h && c < m.c);
+    m.data[c*m.h*m.w + y*m.w + x] = val;
+}
+
+extern "C" void place_image_cv(mat_cv* img, int w, int h, int dx, int dy, image canvas){
+    cv::Mat image_mat = *(cv::Mat *)img;
+    image im = mat_to_image(image_mat);
+    int x, y, c;
+    for(c = 0; c < im.c; ++c){
+        for(y = 0; y < h; ++y){
+            for(x = 0; x < w; ++x){
+                float rx = ((float)x / w) * im.w;
+                float ry = ((float)y / h) * im.h;
+                float val = bilinear_interpolate(im, rx, ry, c);
+                set_pixel_cv(canvas, x + dx, y + dy, c, val);
+            }
+        }
+    }
+}
 
 extern "C" int get_width_mat(mat_cv *mat)
 {

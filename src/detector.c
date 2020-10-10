@@ -317,9 +317,9 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         //i = get_current_batch(net);
 
         int calc_map_for_each = 4 * train_images_num / (net.batch * net.subdivisions);  // calculate mAP for each 4 Epochs
-        calc_map_for_each = fmax(calc_map_for_each, 100);
+        calc_map_for_each = fmin(calc_map_for_each, 5);
         int next_map_calc = iter_map + calc_map_for_each;
-        next_map_calc = fmax(next_map_calc, net.burn_in);
+        next_map_calc = fmin(next_map_calc, net.burn_in);
         if (calc_map) {
             printf("\n (next mAP calculation at %d iterations) ", next_map_calc);
             if (mean_average_precision > 0) printf("\n Last accuracy mAP@0.5 = %2.2f %%, best = %2.2f %% ", mean_average_precision * 100, best_map * 100);
@@ -1014,7 +1014,7 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
     }
     time_t start = time(0);
     for (i = nthreads; i < m + nthreads; i += nthreads) {
-        fprintf(stderr, "\r%d", i);
+        fprintf(stderr, "\r%d, nthreads: %d, m: %d", i, nthreads, m);
         for (t = 0; t < nthreads && (i + t - nthreads) < m; ++t) {
             pthread_join(thr[t], 0);
             val[t] = buf[t];

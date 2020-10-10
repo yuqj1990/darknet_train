@@ -262,17 +262,13 @@ void find_replace_extension(char *str, char *orig, char *rep, char *output)
 void replace_image_to_label(const char* input_path, char* output_path)
 {
     find_replace(input_path, "/images", "/labels", output_path);    // COCO
-    //find_replace(input_path, "/images/train2014_crop/", "/labels/train2014_crop/", output_path);    // COCO
+    find_replace(input_path, "/train2014_blur", "/train2014", output_path);    // COCO
     find_replace(output_path, "/images/val2014/", "/labels/val2014/", output_path);        // COCO
     find_replace(output_path, "/JPEGImages/", "/labels/", output_path);    // PascalVOC
     find_replace(output_path, "\\images\\train2014\\", "\\labels\\train2014\\", output_path);    // COCO
     find_replace(output_path, "\\images\\val2014\\", "\\labels\\val2014\\", output_path);        // COCO
     find_replace(output_path, "\\JPEGImages\\", "\\labels\\", output_path);    // PascalVOC
-    //find_replace(output_path, "/images/", "/labels/", output_path);    // COCO
-    //find_replace(output_path, "/VOC2007/JPEGImages/", "/VOC2007/labels/", output_path);        // PascalVOC
-    //find_replace(output_path, "/VOC2012/JPEGImages/", "/VOC2012/labels/", output_path);        // PascalVOC
-
-    //find_replace(output_path, "/raw/", "/labels/", output_path);
+    
     trim(output_path);
 
     // replace only ext of files

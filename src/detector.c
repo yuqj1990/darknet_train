@@ -185,7 +185,6 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     //int num_threads = get_num_threads();
     //if(num_threads > 2) args.threads = get_num_threads() - 2;
     args.threads = 6 * ngpus;   // 3 for - Amazon EC2 Tesla V100: p3.2xlarge (8 logical cores) - p3.16xlarge
-    //args.threads = 12 * ngpus;    // Ryzen 7 2700X (16 logical cores)
     mat_cv* img = NULL;
     float max_img_loss = net.max_chart_loss;
     int number_of_lines = 100;
@@ -202,8 +201,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         args.mini_batch = net.batch / net.time_steps;
         printf("\n Tracking! batch = %d, subdiv = %d, time_steps = %d, mini_batch = %d \n", net.batch, net.subdivisions, net.time_steps, args.mini_batch);
     }
-    //printf(" imgs = %d \n", imgs);
-
+    
     pthread_t load_thread = load_data(args);
 
     int count = 0;
@@ -273,23 +271,6 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
             printf(" sequential_subdivisions = %d, sequence = %d \n", net.sequential_subdivisions, get_sequence_value(net));
         }
         load_thread = load_data(args);
-
-        /*
-        int k;
-        for(k = 0; k < l.max_boxes; ++k){
-        box b = float_to_box(train.y.vals[10] + 1 + k*5);
-        if(!b.x) break;
-        printf("loaded: %f %f %f %f\n", b.x, b.y, b.w, b.h);
-        }
-        image im = float_to_image(448, 448, 3, train.X.vals[10]);
-        int k;
-        for(k = 0; k < l.max_boxes; ++k){
-        box b = float_to_box(train.y.vals[10] + 1 + k*5);
-        printf("%d %d %d %d\n", truth.x, truth.y, truth.w, truth.h);
-        draw_bbox(im, b, 8, 1,0,0);
-        }
-        save_image(im, "truth11");
-        */
 
         const double load_time = (what_time_is_it_now() - time);
         printf("Loaded: %lf seconds", load_time);
@@ -374,7 +355,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
             printf("\n mean_average_precision (mAP@0.5) = %f \n", mean_average_precision);
             if (mean_average_precision > best_map) {
                 best_map = mean_average_precision;
-                printf("New best mAP!\n");
+                printf("New best mAP: %f!\n", best_map);
                 char buff[256];
                 sprintf(buff, "%s/%s_best.weights", backup_directory, base);
                 save_weights(net, buff);
@@ -390,9 +371,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         draw_train_loss(windows_name, img, img_size, avg_loss, max_img_loss, iteration, net.max_batches, mean_average_precision, draw_precision, "mAP%", dont_show, mjpeg_port, avg_time);
 #endif    // OPENCV
 
-        //if (i % 1000 == 0 || (i < 1000 && i % 100 == 0)) {
-        //if (i % 100 == 0) {
-        if (iteration >= (iter_save + 1000) || iteration % 1000 == 0) {
+        if (iteration >= (iter_save + 1000) || iteration % 10000 == 0) {
             iter_save = iteration;
 #ifdef GPU
             if (ngpus != 1) sync_nets(nets, ngpus, 0);

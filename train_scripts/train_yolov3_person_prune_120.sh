@@ -1,1 +1,1 @@
-../darknet detector train -dont_show ../cfg/person/person.data ../cfg/person/yolov3_person_prune_120.cfg ../backup
+../darknet detector train -dont_show -map ../cfg/person/person.data ../cfg/person/yolov3_person_prune_120.cfg

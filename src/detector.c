@@ -282,6 +282,26 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 #ifdef GPU
         if (ngpus == 1) {
             int wait_key = (dont_show) ? 0 : 1;
+            #if 0
+            printf("start train net buffer d.rows: %d, d.cols: %d, net.h: %d, net.w: %d, line: %d\n", buffer.y.rows, buffer.y.cols, net.h, net.w, __LINE__);
+            for(int b = 0; b < buffer.y.rows; b++){
+                for(int i = 0; i < buffer.y.cols; i++){
+                    if(buffer.y.vals[b][i] > 1){
+                        printf("start train net buffer label_value: %f, line: %d\n,", buffer.y.vals[b][i], __LINE__);
+                        error("start train net buffer the label is wrong, bigger than 1.f\n");
+                    }
+                }
+            }
+            printf("start train net train d.rows: %d, d.cols: %d, net.h: %d, net.w: %d, line: %d\n", train.y.rows, train.y.cols, net.h, net.w,  __LINE__);
+            for(int b = 0; b < train.y.rows; b++){
+                for(int i = 0; i < train.y.cols; i++){
+                    if(train.y.vals[b][i] > 1){
+                        printf("start train net train label_value: %f, line: %d\n,", train.y.vals[b][i], __LINE__);
+                        error("start train net train the label is wrong, bigger than 1.f\n");
+                    }
+                }
+            }
+            #endif
             loss = train_network_waitkey(net, train, wait_key);
         }
         else {
@@ -371,7 +391,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         draw_train_loss(windows_name, img, img_size, avg_loss, max_img_loss, iteration, net.max_batches, mean_average_precision, draw_precision, "mAP%", dont_show, mjpeg_port, avg_time);
 #endif    // OPENCV
 
-        if (iteration >= (iter_save + 1000) || iteration % 10000 == 0) {
+        if (iteration >= (iter_save + 10000) || iteration % 10000 == 0) {
             iter_save = iteration;
 #ifdef GPU
             if (ngpus != 1) sync_nets(nets, ngpus, 0);
@@ -381,7 +401,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
             save_weights(net, buff);
         }
 
-        if (iteration >= (iter_save_last + 100) || (iteration % 100 == 0 && iteration > 1)) {
+        if (iteration >= (iter_save_last + 10000) || (iteration % 10000 == 0 && iteration > 1)) {
             iter_save_last = iteration;
 #ifdef GPU
             if (ngpus != 1) sync_nets(nets, ngpus, 0);
@@ -463,7 +483,7 @@ static void print_cocos(FILE *fp, char *image_path, detection *dets, int num_box
             if (dets[i].prob[j] > 0) {
                 char buff[1024];
                 sprintf(buff, "{\"image_id\":%d, \"category_id\":%d, \"bbox\":[%f, %f, %f, %f], \"score\":%f},\n", image_id, coco_ids[j], bx, by, bw, bh, dets[i].prob[j]);
-                fprintf(fp, buff);
+                fprintf(fp, "%s", buff);
                 //printf("%s", buff);
             }
         }

@@ -627,7 +627,7 @@ int resize_network(network *net, int w, int h)
     free(net->workspace);
     net->workspace = (float*)xcalloc(1, workspace_size);
 #endif
-    //fprintf(stderr, " Done!\n");
+    fprintf(stderr, " Done!\n");
     return 0;
 }
 

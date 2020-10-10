@@ -1071,6 +1071,7 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
     int id;
     int i;
     int obj_index,obj_x,obj_y,obj_w,obj_h;
+    //printf("out_w: %d, out_h: %d\n", out_w, out_h);
     for (i = 0; i < count; ++i) {
         x =  boxes[i*5 + 0];
         y =  boxes[i*5 + 1];
@@ -1082,12 +1083,12 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         if(w == 0 || h == 0 || out_w < 1 || out_h < 1){
             continue;
         }        
-        obj_index=label_index(out_w,out_h,classes,obj_y*out_w + obj_x,0);
+        obj_index=label_index(out_w, out_h, classes, obj_y * out_w + obj_x, 0);
         truth[obj_index + 0 * (out_h*out_w)] = x;
         truth[obj_index + 1 * (out_h*out_w)] = y;
         truth[obj_index + 2 * (out_h*out_w)] = w;
         truth[obj_index + 3 * (out_h*out_w)] = h;
-        #if 1
+        #if 0
         float radius = gaussian_radius(obj_h, obj_w, 0.7);
         radius = max(0., radius);
         draw_umich_gaussian(truth + (4 + id) * (out_h * out_w), obj_x, obj_y, radius, out_h, out_w );
@@ -1101,7 +1102,11 @@ void fill_ctdet_truth_detection(float *boxes, int count, float *truth, int class
         for(index_j=y_min;index_j<y_max;++index_j){
             for(index_i=x_min;index_i<x_max;++index_i){
                 class_label = exp(-(pow(index_i-obj_x,2)/s_x+pow(index_j-obj_y,2)/s_y));
-                obj_index=label_index(out_w,out_h,classes,index_j*out_w + index_i,4 + id);
+                if(class_label >1){
+                    printf("index_j: %d, index_i: %d, class_label: %f\n", index_j, index_i, class_label);
+                    error("class label > 1.0");
+                }
+                obj_index=label_index(out_w, out_h, classes, index_j * out_w + index_i, 4 + id);
                 truth[obj_index]=(class_label >= truth[obj_index] ? class_label : truth[obj_index]);
             }
         }
@@ -1415,8 +1420,9 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
     }
     if(float_ == CTDET_DATA){
         int out_h = h / 4;
-        int out_w = w / 4; 
+        int out_w = w / 4;
         d.y = make_matrix(n, (4 + classes) * out_w * out_h);
+        //printf("h: %d, w: %d\n", h, w);
         for(int i_d = 0; i_d < n; i_d++){
             fill_ctdet_truth_detection(temp.vals[i_d], boxes, d.y.vals[i_d], classes, out_h, out_w);
         }

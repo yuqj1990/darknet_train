@@ -79,8 +79,9 @@ void resize_ctdet_layer(layer *l, int w, int h)
     l->w = w;
     l->h = h;
 
-    l->outputs = h*w*(4+l->classes);
+    l->outputs = h*w*(4 + l->classes);
     l->inputs = l->outputs;
+    l->truths = h*w*(4 + l->classes);
 
     if (!l->output_pinned) l->output = (float*)xrealloc(l->output, l->batch*l->outputs * sizeof(float));
     if (!l->delta_pinned) l->delta = (float*)xrealloc(l->delta, l->batch*l->outputs*sizeof(float));
@@ -213,6 +214,7 @@ void forward_ctdet_layer(const layer l, network_state state)
                         box_cost += loss;
                         ++count;
                     }else{
+                        printf("label_value: %f, file: %s, function: %s, line: %d\n,", label, __FILE__, __func__, __LINE__);
                         error("the label is wrong, bigger than 1.f\n");
                     }
                 }

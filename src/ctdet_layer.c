@@ -1,9 +1,9 @@
 //
-// Created by yoloCao on 19-8-26.
+// Created by yuqianjin
 //
 
 //
-// Created by yoloCao on 19-8-14.
+// Created by yuqianjin 
 //
 
 #include "ctdet_layer.h"
@@ -16,6 +16,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+
+static int postive_count = 0;
+#define normalize_batch 0
 
 layer make_ctdet_layer(int batch, int w, int h , int classes, int size ,int stride,int padding)
 {
@@ -39,19 +42,15 @@ layer make_ctdet_layer(int batch, int w, int h , int classes, int size ,int stri
     l.pad = padding;
     l.size = size;
     l.stride = stride;
-    l.indexes = (int*)xcalloc(batch*l.outputs, sizeof(int));
-
-    l.num_detection = (int*)xcalloc(1, sizeof(int));
+    
     l.forward = forward_ctdet_layer;
     l.backward = backward_ctdet_layer;
 
 #ifdef GPU
-    l.num_detection_gpu = cuda_make_int_array_ctdet(0,1);
     l.forward_gpu = forward_ctdet_layer_gpu;
     l.backward_gpu = backward_ctdet_layer_gpu;
     l.output_gpu = cuda_make_array(l.output, batch*l.outputs);
     l.delta_gpu = cuda_make_array(l.delta, batch*l.outputs);
-    l.indexes_gpu = cuda_make_int_array_ctdet(l.indexes, batch*l.outputs);
 
     free(l.output);
     if (cudaSuccess == cudaHostAlloc(&l.output, batch*l.outputs*sizeof(float), cudaHostRegisterMapped)) l.output_pinned = 1;
@@ -85,7 +84,6 @@ void resize_ctdet_layer(layer *l, int w, int h)
 
     if (!l->output_pinned) l->output = (float*)xrealloc(l->output, l->batch*l->outputs * sizeof(float));
     if (!l->delta_pinned) l->delta = (float*)xrealloc(l->delta, l->batch*l->outputs*sizeof(float));
-    l->indexes = (int*)xrealloc(l->indexes, l->batch*l->outputs*sizeof(int));
 
 #ifdef GPU
 
@@ -111,11 +109,8 @@ void resize_ctdet_layer(layer *l, int w, int h)
 
     cuda_free(l->delta_gpu);
     cuda_free(l->output_gpu);
-    cudaError_t status = cudaFree(l->indexes_gpu);
-    check_error(status);
     l->delta_gpu =     cuda_make_array(l->delta, l->batch*l->outputs);
     l->output_gpu =    cuda_make_array(l->output, l->batch*l->outputs);
-    l->indexes_gpu =  cuda_make_int_array_ctdet(l->indexes, l->batch*l->outputs);
 #endif
 
 }
@@ -155,12 +150,12 @@ float delta_ctdet_box(box truth, float *x, int index, int i, int j, int lw, int 
     float temp_loss = 0, delta_x = 0, delta_y = 0, delta_w = 0, delta_h = 0;
     temp_loss += smoothL1_Loss(x[index + 0 * stride] - tx, &delta_x);
     temp_loss += smoothL1_Loss(x[index + 1 * stride] - ty, &delta_y);
-    temp_loss += smoothL1_Loss(x[index + 2 * stride] - tw, &delta_w);
-    temp_loss += smoothL1_Loss(x[index + 3 * stride] - th, &delta_h);
-    delta[index + 0 * stride] = delta_x;
-    delta[index + 1 * stride] = delta_y;
-    delta[index + 2 * stride] = delta_w;
-    delta[index + 3 * stride] = delta_h;
+    temp_loss += smoothL1_Loss(x[index + 2 * stride] - tw, &delta_w) * 0.1;
+    temp_loss += smoothL1_Loss(x[index + 3 * stride] - th, &delta_h) * 0.1;
+    delta[index + 0 * stride] = delta_x * (-1);
+    delta[index + 1 * stride] = delta_y * (-1);
+    delta[index + 2 * stride] = delta_w * (-0.1);
+    delta[index + 3 * stride] = delta_h * (-0.1);
     *box_loss = temp_loss;
     return iou;
 }
@@ -180,7 +175,7 @@ void forward_ctdet_layer(const layer l, network_state state)
     memcpy(l.output, state.input, l.outputs*l.batch*sizeof(float));
     #ifndef GPU
     for (b = 0; b < l.batch; ++b){
-        int index = entry_index(l, b, 0*l.w*l.h, 4);
+        int index = entry_index(l, b, 0, 4);
         activate_array(l.output + index, (l.classes)*l.w*l.h, LOGISTIC);
     }
     #endif
@@ -189,10 +184,7 @@ void forward_ctdet_layer(const layer l, network_state state)
         return;
     }
     float avg_iou = 0;
-    float recall = 0;
-    float recall75 = 0;
     float avg_obj = 0;
-    float avg_anyobj = 0;
     int count = 0;
     *(l.cost) = 0;
     float alpha = 2., gamma_ = 4.;
@@ -202,18 +194,16 @@ void forward_ctdet_layer(const layer l, network_state state)
             for (i = 0; i < l.w; ++i){
                 for(cl = 0;cl <l.classes;++cl) {
                     int obj_index = entry_index(l, b, j * l.w + i,4 + cl);
-                    float label=state.truth[obj_index];
+                    float label = state.truth[obj_index];
                     float prob_obj = l.output[obj_index];
-                    if(label < 1) {
+                    if(label < 1){
                         class_cost -= pow(1 - label, gamma_) * pow(prob_obj, alpha) * log(1 - prob_obj);
-                        l.delta[obj_index] = pow(prob_obj, alpha) * pow(1 - label, gamma_) *
-                                                 (prob_obj - alpha * (1 - prob_obj) * log(1 - prob_obj));
-                        avg_anyobj += prob_obj;
+                        l.delta[obj_index] = (-1) * pow(prob_obj, alpha) * pow(1 - label, gamma_) *(prob_obj - alpha * (1 - prob_obj) * log(1 - prob_obj));
 
                     }else if (label == 1){
                         class_cost -= pow(1 - prob_obj, alpha) * log(prob_obj);
-                        l.delta[obj_index] = pow(1 - prob_obj, alpha) * (alpha * prob_obj* log(prob_obj) - 
-                                                    (1 - prob_obj));
+                        l.delta[obj_index] = (-1) * pow(1 - prob_obj, alpha) * (alpha * prob_obj* log(prob_obj) - (1 - prob_obj));
+
                         int box_index = entry_index(l, b, j * l.w + i, 0);
                         box truth = float_to_box_stride(state.truth +box_index, l.w*l.h);
                         loss = 0;
@@ -221,30 +211,29 @@ void forward_ctdet_layer(const layer l, network_state state)
                         avg_obj += prob_obj;
                         avg_iou += iou;
                         box_cost += loss;
-                        if(iou > .5) recall += 1;
-                        if(iou > .75) recall75 += 1;
                         ++count;
+                    }else{
+                        error("the label is wrong, bigger than 1.f\n");
                     }
                 }
             }
         }
     }
-    *(l.cost) = (box_cost + class_cost);
-    printf("box_cost: %f, class_cost: %f\n", box_cost, class_cost);
-    printf("Region %d, Avg IOU: %f, Obj: %f, No Obj: %f, count: %d\n", 
-                        state.index, avg_iou/count, avg_obj/count, avg_anyobj/(l.classes*l.w*l.h*l.batch), count);
+    postive_count = count > 0 && normalize_batch ? count : 1;
+    *(l.cost) = (box_cost + class_cost) / postive_count;
+    printf("Region %d, Avg IOU: %f, Obj: %f, count: %d\n", state.index, avg_iou/count, avg_obj/count, count);
 }
 
 void backward_ctdet_layer(const layer l, network_state state)
 {
-    axpy_cpu(l.batch*l.inputs, 1, l.delta, 1, state.delta, 1);
+    axpy_cpu(l.batch*l.inputs, 1 / postive_count, l.delta, 1, state.delta, 1);
 }
 
 void correct_ctdet_boxes(detection *dets, int n, int w, int h, int netw, int neth, int relative)
 {
     int i;
-    int new_w=0;
-    int new_h=0;
+    int new_w = 0;
+    int new_h = 0;
     if (((float)netw/w) < ((float)neth/h)) {
         new_w = netw;
         new_h = (h * netw)/w;
@@ -270,10 +259,15 @@ void correct_ctdet_boxes(detection *dets, int n, int w, int h, int netw, int net
 
 int ctdet_num_detections(layer l, float thresh)
 {
-    int i;
+    int i, obj_index, j;
     int count = 0;
-    for (i = 0; i < *(l.num_detection); ++i){
-        if (l.output[l.indexes[i]] >= thresh) {
+    for (i = 0; i < l.w * l.h; ++i){
+        obj_index = 4 * l.w * l.h + i;
+        for(j = 0; j < l.classes; ++j){
+            if(l.output[obj_index] <= l.output[(4 + j) * l.w *l.h + i])
+                obj_index = (4 + j) * l.w *l.h;
+        }
+        if (l.output[obj_index] >= thresh) {
             ++count;
         }
     }
@@ -282,20 +276,22 @@ int ctdet_num_detections(layer l, float thresh)
 
 int get_ctdet_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, int relative, detection *dets)
 {
-    int i,id,obj_index,x,y,k;
+    int i,obj_index,x,y,k, j;
     float *predictions = l.output;
     int count = 0;
-    for (i = 0; i < *(l.num_detection); ++i){
-        obj_index = l.indexes[i];
-        id = obj_index;
-        x = id % l.w;
-        id /= l.w;
-        y = id % l.h;
-        id /= l.h;
-        k = id % l.classes;
+    for (i = 0; i < l.w * l.h; ++i){
+        obj_index = 4 * l.w * l.h + i;
+        k = 0;
+        for(j = 0; j < l.classes; ++j){
+            if(predictions[obj_index] <= predictions[(4 + j) * l.w *l.h + i])
+                obj_index = (4 + j) * l.w *l.h;
+                k = j;
+        }
+        x = i % l.w;
+        y = i / l.w;
         float objectness = predictions[obj_index];
         if (objectness <= thresh) continue;
-        int box_index = entry_index(l, 0, y * l.w + x, l.classes );
+        int box_index = entry_index(l, 0, y * l.w + x, 0 );
         dets[count].bbox = get_ctdet_box(predictions, box_index, x, y, l.w, l.h, l.w * l.h);
         dets[count].objectness = objectness;
         dets[count].classes = l.classes;
@@ -317,8 +313,6 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
         activate_array_ongpu(l.output_gpu + index, l.classes*l.w*l.h, LOGISTIC);
     }
     if(!state.train || l.onlyforward){
-        cuda_pull_int_array(l.num_detection_gpu,l.num_detection,1);
-        cuda_pull_int_array(l.indexes_gpu,l.indexes,*l.num_detection);
         cuda_pull_array_async(l.output_gpu, l.output, l.batch*l.outputs);
         CHECK_CUDA(cudaPeekAtLastError());
         return;
@@ -347,6 +341,6 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
 
 void backward_ctdet_layer_gpu(const layer l, network_state state)
 {
-    axpy_ongpu(l.batch*l.inputs, 1, l.delta_gpu, 1, state.delta, 1);
+    axpy_ongpu(l.batch*l.inputs, 1 / postive_count, l.delta_gpu, 1, state.delta, 1);
 }
 #endif

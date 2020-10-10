@@ -25,9 +25,26 @@ typedef __compar_fn_t comparison_fn_t;
 #include "http_stream.h"
 
 int check_mistakes = 0;
+#define FILEPATH_MAX (80)
 
-static int coco_ids[] = { 1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,81,82,84,85,86,87,88,89,90 };
+static int coco_ids[] = { 1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,
+                          21,22,23,24,25,27,28,31,32,33,34,35,36,37,38,39,40,
+                          41,42,43,44,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,
+                          61,62,63,64,65,67,70,72,73,74,75,76,77,78,79,80,
+                          81,82,84,85,86,87,88,89,90 };
 
+typedef struct {
+    box b;
+    float p;
+    int class_id;
+    int image_index;
+    int truth_flag;
+    int unique_truth_index;
+} box_prob;
+
+typedef struct {
+    float w, h;
+} anchors_t;
  
 char *GetFilename(char *p)
 { 
@@ -38,7 +55,9 @@ char *GetFilename(char *p)
 }
 
 
-void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, int dont_show, int calc_map, int mjpeg_port, int show_imgs, int benchmark_layers, char* chart_path)
+void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, 
+                    int clear, int dont_show, int calc_map, int mjpeg_port, int show_imgs, 
+                    int benchmark_layers, char* chart_path)
 {
     list *options = read_data_cfg(datacfg);
     char *train_images = option_find_str(options, "train", "data/train.txt");
@@ -515,7 +534,8 @@ void print_imagenet_detections(FILE *fp, int id, detection *dets, int total, int
     }
 }
 
-static void print_kitti_detections(FILE **fps, char *id, detection *dets, int total, int classes, int w, int h, char *outfile, char *prefix)
+static void print_kitti_detections(FILE **fps, char *id, detection *dets, int total, int classes, 
+                                    int w, int h, char *outfile, char *prefix)
 {
     char *kitti_ids[] = { "car", "pedestrian", "cyclist" };
     FILE *fpd = 0;
@@ -580,7 +600,8 @@ static void get_bdd_image_id(char *filename)
     strcpy(filename, p);
 }
 
-static void print_bdd_detections(FILE *fp, char *image_path, detection *dets, int num_boxes, int classes, int w, int h)
+static void print_bdd_detections(FILE *fp, char *image_path, detection *dets, 
+                                    int num_boxes, int classes, int w, int h)
 {
     char *bdd_ids[] = { "bike" , "bus" , "car" , "motor" ,"person", "rider", "traffic light", "traffic sign", "train", "truck" };
     get_bdd_image_id(image_path);
@@ -882,14 +903,6 @@ void validate_detector_recall(char *datacfg, char *cfgfile, char *weightfile)
     }
 }
 
-typedef struct {
-    box b;
-    float p;
-    int class_id;
-    int image_index;
-    int truth_flag;
-    int unique_truth_index;
-} box_prob;
 
 int detections_comparator(const void *pa, const void *pb)
 {
@@ -901,7 +914,9 @@ int detections_comparator(const void *pa, const void *pb)
     return 0;
 }
 
-float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, float thresh_calc_avg_iou, const float iou_thresh, const int map_points, int letter_box, network *existing_net)
+float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, float thresh_calc_avg_iou, 
+                            const float iou_thresh, const int map_points, int letter_box, 
+                            network *existing_net)
 {
     int j;
     list *options = read_data_cfg(datacfg);
@@ -1354,9 +1369,6 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
     return mean_average_precision;
 }
 
-typedef struct {
-    float w, h;
-} anchors_t;
 
 int anchors_comparator(const void *pa, const void *pb)
 {
@@ -1561,8 +1573,10 @@ void calc_anchors(char *datacfg, int num_of_clusters, int width, int height, int
 }
 
 
-void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh,
-    float hier_thresh, int dont_show, int ext_output, int save_labels, char *outfile, int letter_box, int benchmark_layers)
+void test_detector(char *datacfg, char *cfgfile, char *weightfile, 
+                    char *filename, float thresh, float hier_thresh, 
+                    int dont_show, int ext_output, int save_labels, 
+                    char *outfile, int letter_box, int benchmark_layers)
 {
     list *options = read_data_cfg(datacfg);
     char *name_list = option_find_str(options, "names", "data/names.list");
@@ -1690,7 +1704,9 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             char **paths = (char **)list_to_array(plist);
              printf("Start Testing!\n");
             int m = plist->size;
-            if(access("/home/yuqianjin/workspace/darknet_train/data/out",0)==-1)
+            //char cwd[FILEPATH_MAX];
+            //getcwd(cwd,FILEPATH_MAX);
+            if(access(strcat("/home/yuqianjin/workspace/darknet_train/data/out",0))==-1)
             {
                 if (mkdir("/home/yuqianjin/workspace/darknet_train/darknet/data/out",0777))
                 {

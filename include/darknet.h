@@ -356,8 +356,7 @@ struct layer {
     float beta;
     float kappa;
 
-    int* num_detection;
-    int* num_detection_gpu;
+    // center-point loss
     float hm_weight;
     float off_weight;
     float wh_weight;

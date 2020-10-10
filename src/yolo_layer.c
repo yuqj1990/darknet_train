@@ -81,11 +81,10 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
 
 void resize_yolo_layer(layer *l, int w, int h)
 {
-    float w_scale = w / l->w;
-    float h_scale = h / l->h;
+    float w_scale = (float)w / l->w;
+    float h_scale = (float)h / l->h;
     l->w = w;
     l->h = h;
-
     for(int i = 0; i < l->total; ++i){
         l->biases[2 * i] = l->biases[2 * i] *w_scale;
         l->biases[2 * i + 1] = l->biases[2 * i + 1] *h_scale;

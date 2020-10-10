@@ -314,14 +314,13 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
         int index = entry_index(l, b, 0, 4);
         activate_array_ongpu(l.output_gpu + index, l.classes*l.w*l.h, LOGISTIC);
     }
-    cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
     if(!state.train || l.onlyforward){
-        //cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
+        cuda_pull_array_async(l.output_gpu, l.output, l.batch*l.outputs);
         CHECK_CUDA(cudaPeekAtLastError());
         return;
     }
     float *in_cpu = (float *)xcalloc(l.batch*l.inputs, sizeof(float));
-    
+    cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
     memcpy(in_cpu, l.output, l.batch*l.outputs*sizeof(float));
     float *truth_cpu = 0;
     

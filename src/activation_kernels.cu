@@ -212,7 +212,7 @@ __global__ void activate_array_kernel(float *x, int n, ACTIVATION a)
 extern "C" void activate_array_gpu(float *x, int n, ACTIVATION a) 
 {
     activate_array_kernel<<<cuda_gridsize(n), BLOCK>>>(x, n, a);
-    check_error(cudaPeekAtLastError());
+    check_error(cudaPeekAtLastError(),__FILE__, __LINE__);
 }
 
 

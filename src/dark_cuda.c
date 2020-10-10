@@ -55,14 +55,14 @@ void *cuda_get_context()
     return (void *)pctx;
 }
 
-void check_error(cudaError_t status)
+void check_error(cudaError_t status, const char *file, int line)
 {
     cudaError_t status2 = cudaGetLastError();
     if (status != cudaSuccess)
     {
         const char *s = cudaGetErrorString(status);
         char buffer[256];
-        printf("\n CUDA Error: %s\n", s);
+        printf("\n CUDA Error: %s, file: %s, line: %d\n", s, file, line);
         snprintf(buffer, 256, "CUDA Error(snprintf): %s", s);
 #ifdef WIN32
         getchar();
@@ -73,7 +73,7 @@ void check_error(cudaError_t status)
     {
         const char *s = cudaGetErrorString(status2);
         char buffer[256];
-        printf("\n CUDA Error Prev: %s\n", s);
+        printf("\n CUDA Error Prev: %s file: %s, line: %d\n", s, file, line);
         snprintf(buffer, 256, "CUDA Error Prev: %s", s);
 #ifdef WIN32
         getchar();
@@ -86,7 +86,7 @@ void check_error_extended(cudaError_t status, const char *file, int line, const 
 {
     if (status != cudaSuccess) {
         printf("CUDA status Error: file: %s() : line: %d : build time: %s \n", file, line, date_time);
-        check_error(status);
+        check_error(status, file, line);
     }
 #if defined(DEBUG) || defined(CUDA_DEBUG)
     cuda_debug_sync = 1;
@@ -96,7 +96,7 @@ void check_error_extended(cudaError_t status, const char *file, int line, const 
         if (status != cudaSuccess)
             printf("CUDA status = cudaDeviceSynchronize() Error: file: %s() : line: %d : build time: %s \n", file, line, date_time);
     }
-    check_error(status);
+    check_error(status, file, line);
 }
 
 dim3 cuda_gridsize(size_t n){
@@ -482,7 +482,7 @@ void cuda_pull_array_async(float *x_gpu, float *x, size_t n)
 {
     size_t size = sizeof(float)*n;
     cudaError_t status = cudaMemcpyAsync(x, x_gpu, size, cudaMemcpyDefault, get_cuda_stream());
-    check_error(status);
+    check_error(status, __FILE__, __LINE__);
     //cudaStreamSynchronize(get_cuda_stream());
 }
 
@@ -539,7 +539,7 @@ void cuda_pull_int_array(int *x_gpu, int *x, size_t n)
 {
     size_t size = sizeof(int)*n;
     cudaError_t status = cudaMemcpy(x, x_gpu, size, cudaMemcpyDeviceToHost);
-    check_error(status);
+    check_error(status, __FILE__, __LINE__);
 }
 
 #else // GPU

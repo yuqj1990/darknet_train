@@ -1815,7 +1815,7 @@ extern "C" void axpy_gpu(int N, float ALPHA, float * X, int INCX, float * Y, int
 extern "C" void axpy_gpu_offset(int N, float ALPHA, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY)
 {
     axpy_kernel<<<cuda_gridsize(N), BLOCK>>>(N, ALPHA, X, OFFX, INCX, Y, OFFY, INCY);
-    check_error(cudaPeekAtLastError());
+    check_error(cudaPeekAtLastError(), __FILE__, __LINE__);
 }
 extern "C" void copy_gpu(int N, float * X, int INCX, float * Y, int INCY)
 {
@@ -1825,7 +1825,7 @@ extern "C" void copy_gpu(int N, float * X, int INCX, float * Y, int INCY)
 extern "C" void copy_gpu_offset(int N, float * X, int OFFX, int INCX, float * Y, int OFFY, int INCY)
 {
     copy_kernel<<<cuda_gridsize(N), BLOCK>>>(N, X, OFFX, INCX, Y, OFFY, INCY);
-    check_error(cudaPeekAtLastError());
+    check_error(cudaPeekAtLastError(), __FILE__, __LINE__);
 }
 
 

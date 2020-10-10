@@ -54,7 +54,7 @@ extern int gpu_index;
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
-    void check_error(cudaError_t status);
+    void check_error(cudaError_t status, const char *file, int line);
     void check_error_extended(cudaError_t status, const char *file, int line, const char *date_time);
 #define CHECK_CUDA(X) check_error_extended(X, __FILE__ " : " __FUNCTION__, __LINE__,  __DATE__ " - " __TIME__ );
 

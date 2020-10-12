@@ -267,7 +267,7 @@ int ctdet_num_detections(layer l, float thresh)
         obj_index = 4 * l.w * l.h + i;
         for(j = 0; j < l.classes; ++j){
             if(l.output[obj_index] <= l.output[(4 + j) * l.w *l.h + i])
-                obj_index = (4 + j) * l.w *l.h;
+                obj_index = (4 + j) * l.w *l.h + i;
         }
         if (l.output[obj_index] >= thresh) {
             ++count;

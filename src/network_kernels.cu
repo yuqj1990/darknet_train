@@ -659,7 +659,7 @@ float *network_predict_gpu(network net, float *input)
 {
     if (net.gpu_index != cuda_get_device())
         cuda_set_device(net.gpu_index);
-    printf("----------\n");
+    printf("\n----------------\n");
     int size = get_network_input_size(net) * net.batch;
     network_state state;
     state.index = 0;

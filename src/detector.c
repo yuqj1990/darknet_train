@@ -1028,7 +1028,7 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
                 if (l.nms_kind == DEFAULT_NMS) do_nms_sort(dets, nboxes, l.classes, nms);
                 else diounms_sort(dets, nboxes, l.classes, nms, l.nms_kind, l.beta_nms);
             }
-            printf("do_nms_sort finished\n");
+            printf("do_nms_sort finished, nboxes: %d\n", nboxes);
             //if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
 
             char labelpath[4096];
@@ -1138,7 +1138,8 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             //char buff[1000];
             //sprintf(buff, "%s\n", path);
             //if(errors_in_this_image > 0) fwrite(buff, sizeof(char), strlen(buff), reinforcement_fd);
-
+            
+            printf("one iteration finished\n");
             free_detections(dets, nboxes);
             free(id);
             free_image(val[t]);

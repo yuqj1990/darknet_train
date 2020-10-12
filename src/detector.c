@@ -1141,9 +1141,11 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             
             printf("one iteration finished\n");
             free_detections(dets, nboxes);
+            printf("free_detections\n");
             free(id);
             free_image(val[t]);
             free_image(val_resized[t]);
+            printf("finish\n");
         }
     }
 

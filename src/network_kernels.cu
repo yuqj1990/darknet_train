@@ -645,7 +645,7 @@ float *get_network_output_layer_gpu(network net, int i)
 {
     layer l = net.layers[i];
     if(l.type != REGION) cuda_pull_array(l.output_gpu, l.output, l.outputs*l.batch);
-    printf("l.outputs: %d, l.batch: %d\n", l.outputs*l.batch);
+    printf("\nl.outputs: %d, l.batch: %d\n", l.outputs, l.batch);
     return l.output;
 }
 

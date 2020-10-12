@@ -269,7 +269,7 @@ int ctdet_num_detections(layer l, float thresh)
             if(l.output[obj_index] <= l.output[(4 + j) * l.w *l.h + i])
                 obj_index = (4 + j) * l.w *l.h + i;
         }
-        if (l.output[obj_index] >= thresh) {
+        if (l.output[obj_index] > thresh) {
             ++count;
         }
     }
@@ -291,6 +291,7 @@ int get_ctdet_detections(layer l, int w, int h, int netw, int neth, float thresh
         }
         x = i % l.w;
         y = i / l.w;
+        assert(i == (y * l.w + x));
         float objectness = predictions[obj_index];
         if (objectness <= thresh) continue;
         int box_index = entry_index(l, 0, y * l.w + x, 0 );

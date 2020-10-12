@@ -78,6 +78,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         printf(" Prepare additional network for mAP calculation...\n");
         net_map = parse_network_cfg_custom(cfgfile, 1, 1);
         net_map.benchmark_layers = benchmark_layers;
+        net_map.layers[net_map.n - 1].classes = 1;
         const int net_classes = net_map.layers[net_map.n - 1].classes;
 
         int k;  // free memory unnecessary arrays
@@ -201,15 +202,14 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         args.mini_batch = net.batch / net.time_steps;
         printf("\n Tracking! batch = %d, subdiv = %d, time_steps = %d, mini_batch = %d \n", net.batch, net.subdivisions, net.time_steps, args.mini_batch);
     }
+
+    args.resize = 1;
+    l.random = 1;
     
     pthread_t load_thread = load_data(args);
 
     int count = 0;
     double time_remaining, avg_time = -1, alpha_time = 0.01;
-
-    args.resize = 1;
-    l.random = 1;
-    l.classes = 1;
 
     while (get_current_iteration(net) < net.max_batches) {
         if (l.random && count++ % 10 == 0) {

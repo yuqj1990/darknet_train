@@ -1190,8 +1190,6 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
             int dw = (ow*jitter);
             int dh = (oh*jitter);
-
-            resize = 1;
             
             float resize_down = resize, resize_up = resize;
             if (resize_down > 1.0) resize_down = 1 / resize_down;

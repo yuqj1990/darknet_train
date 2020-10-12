@@ -78,7 +78,6 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         printf(" Prepare additional network for mAP calculation...\n");
         net_map = parse_network_cfg_custom(cfgfile, 1, 1);
         net_map.benchmark_layers = benchmark_layers;
-        net_map.layers[net_map.n - 1].classes = 1;
         const int net_classes = net_map.layers[net_map.n - 1].classes;
 
         int k;  // free memory unnecessary arrays
@@ -202,11 +201,6 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         args.mini_batch = net.batch / net.time_steps;
         printf("\n Tracking! batch = %d, subdiv = %d, time_steps = %d, mini_batch = %d \n", net.batch, net.subdivisions, net.time_steps, args.mini_batch);
     }
-
-    args.resize = 1;
-    l.random = 1;
-    args.classes = 1;
-    l.classes = 1;
     
     pthread_t load_thread = load_data(args);
 
@@ -341,8 +335,8 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
                     printf("\n %d x %d  (batch = %d) \n", init_w, init_h, init_b);
                 }
                 pthread_join(load_thread, 0);
-                free_data(train);
                 train = buffer;
+                free_data(train);
                 load_thread = load_data(args);
                 for (k = 0; k < ngpus; ++k) {
                     resize_network(nets + k, init_w, init_h);
@@ -932,12 +926,11 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
         fuse_conv_batchnorm(net);
         calculate_binary_weights(net);
     }
-    /*
     if (net.layers[net.n - 1].classes != names_size) {
         printf("\n Error: in the file %s number of names %d that isn't equal to classes=%d in the file %s \n",
             name_list, names_size, net.layers[net.n - 1].classes, cfgfile);
         getchar();
-    }*/
+    }
     srand(time(0));
     printf("\n calculation mAP (mean average precision)...\n");
 

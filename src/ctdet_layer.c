@@ -314,6 +314,8 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
         activate_array_ongpu(l.output_gpu + index, l.classes*l.w*l.h, LOGISTIC);
     }
     if(!state.train || l.onlyforward){
+        //cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
+        if (l.mean_alpha && l.output_avg_gpu) mean_array_gpu(l.output_gpu, l.batch*l.outputs, l.mean_alpha, l.output_avg_gpu);
         cuda_pull_array_async(l.output_gpu, l.output, l.batch*l.outputs);
         CHECK_CUDA(cudaPeekAtLastError());
         return;

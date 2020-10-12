@@ -91,16 +91,17 @@ void resize_ctdet_layer(layer *l, int w, int h)
     if (l->output_pinned) {
         CHECK_CUDA(cudaFreeHost(l->output));
         if (cudaSuccess != cudaHostAlloc(&l->output, l->batch*l->outputs * sizeof(float), cudaHostRegisterMapped)) {
-            cudaGetLastError(); // reset CUDA-error
+            CHECK_CUDA(cudaGetLastError()); // reset CUDA-error
             l->output = (float*)xcalloc(l->batch * l->outputs, sizeof(float));
             l->output_pinned = 0;
         }
+        printf("resized==============\n");
     }
 
     if (l->delta_pinned) {
         CHECK_CUDA(cudaFreeHost(l->delta));
         if (cudaSuccess != cudaHostAlloc(&l->delta, l->batch*l->outputs * sizeof(float), cudaHostRegisterMapped)) {
-            cudaGetLastError(); // reset CUDA-error
+            CHECK_CUDA(cudaGetLastError()); // reset CUDA-error
             l->delta = (float*)xcalloc(l->batch * l->outputs, sizeof(float));
             l->delta_pinned = 0;
         }
@@ -316,6 +317,7 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
         activate_array_ongpu(l.output_gpu + index, l.classes*l.w*l.h, LOGISTIC);
     }
     if(!state.train || l.onlyforward){
+        printf("l.batch: %d, l.outputs: %d\n", l.batch, l.outputs);
         cuda_pull_array_async(l.output_gpu, l.output, l.batch*l.outputs);
         CHECK_CUDA(cudaPeekAtLastError());
         return;

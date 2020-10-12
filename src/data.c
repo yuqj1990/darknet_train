@@ -1190,6 +1190,8 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
             int dw = (ow*jitter);
             int dh = (oh*jitter);
+
+            resize = 1;
             
             float resize_down = resize, resize_up = resize;
             if (resize_down > 1.0) resize_down = 1 / resize_down;
@@ -1510,15 +1512,15 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
             if (!augmentation_calculated || !track)
             {
                 augmentation_calculated = 1;
-                resize_r1 = random_);
-                resize_r2 = random_);
+                resize_r1 = random_float();
+                resize_r2 = random_float();
 
-                r1 = random_);
-                r2 = random_);
-                r3 = random_);
-                r4 = random_);
+                r1 = random_float();
+                r2 = random_float();
+                r3 = random_float();
+                r4 = random_float();
 
-                r_scale = random_);
+                r_scale = random_float();
 
                 dhue = rand_uniform_strong(-hue, hue);
                 dsat = rand_scale(saturation);

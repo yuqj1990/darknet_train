@@ -207,6 +207,8 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     int count = 0;
     double time_remaining, avg_time = -1, alpha_time = 0.01;
 
+    l.random = 1;
+
     while (get_current_iteration(net) < net.max_batches) {
         if (l.random && count++ % 10 == 0) {
             float rand_coef = 1.4;

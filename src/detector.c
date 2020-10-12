@@ -282,26 +282,6 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 #ifdef GPU
         if (ngpus == 1) {
             int wait_key = (dont_show) ? 0 : 1;
-            #if 0
-            printf("start train net buffer d.rows: %d, d.cols: %d, net.h: %d, net.w: %d, line: %d\n", buffer.y.rows, buffer.y.cols, net.h, net.w, __LINE__);
-            for(int b = 0; b < buffer.y.rows; b++){
-                for(int i = 0; i < buffer.y.cols; i++){
-                    if(buffer.y.vals[b][i] > 1){
-                        printf("start train net buffer label_value: %f, line: %d\n,", buffer.y.vals[b][i], __LINE__);
-                        error("start train net buffer the label is wrong, bigger than 1.f\n");
-                    }
-                }
-            }
-            printf("start train net train d.rows: %d, d.cols: %d, net.h: %d, net.w: %d, line: %d\n", train.y.rows, train.y.cols, net.h, net.w,  __LINE__);
-            for(int b = 0; b < train.y.rows; b++){
-                for(int i = 0; i < train.y.cols; i++){
-                    if(train.y.vals[b][i] > 1){
-                        printf("start train net train label_value: %f, line: %d\n,", train.y.vals[b][i], __LINE__);
-                        error("start train net train the label is wrong, bigger than 1.f\n");
-                    }
-                }
-            }
-            #endif
             loss = train_network_waitkey(net, train, wait_key);
         }
         else {

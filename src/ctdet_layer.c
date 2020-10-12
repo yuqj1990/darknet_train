@@ -286,7 +286,7 @@ int get_ctdet_detections(layer l, int w, int h, int netw, int neth, float thresh
         k = 0;
         for(j = 0; j < l.classes; ++j){
             if(predictions[obj_index] <= predictions[(4 + j) * l.w *l.h + i])
-                obj_index = (4 + j) * l.w *l.h;
+                obj_index = (4 + j) * l.w *l.h + i;
                 k = j;
         }
         x = i % l.w;
@@ -315,10 +315,8 @@ void forward_ctdet_layer_gpu(const layer l, network_state state)
         activate_array_ongpu(l.output_gpu + index, l.classes*l.w*l.h, LOGISTIC);
     }
     if(!state.train || l.onlyforward){
-        printf("wo shi yige da sha bi\n");
         cuda_pull_array_async(l.output_gpu, l.output, l.batch*l.outputs);
         CHECK_CUDA(cudaPeekAtLastError());
-        printf("wo shi yige da sha bi 2\n");
         return;
     }
     float *in_cpu = (float *)xcalloc(l.batch*l.inputs, sizeof(float));

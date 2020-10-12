@@ -205,6 +205,8 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 
     args.resize = 1;
     l.random = 1;
+    args.classes = 1;
+    l.classes = 1;
     
     pthread_t load_thread = load_data(args);
 
@@ -930,11 +932,12 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
         fuse_conv_batchnorm(net);
         calculate_binary_weights(net);
     }
+    /*
     if (net.layers[net.n - 1].classes != names_size) {
         printf("\n Error: in the file %s number of names %d that isn't equal to classes=%d in the file %s \n",
             name_list, names_size, net.layers[net.n - 1].classes, cfgfile);
         getchar();
-    }
+    }*/
     srand(time(0));
     printf("\n calculation mAP (mean average precision)...\n");
 

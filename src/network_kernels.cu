@@ -645,7 +645,6 @@ float *get_network_output_layer_gpu(network net, int i)
 {
     layer l = net.layers[i];
     if(l.type != REGION) cuda_pull_array(l.output_gpu, l.output, l.outputs*l.batch);
-    printf("\nl.outputs: %d, l.batch: %d\n", l.outputs, l.batch);
     return l.output;
 }
 
@@ -673,7 +672,6 @@ float *network_predict_gpu(network net, float *input)
     state.delta = 0;
     forward_network_gpu(net, state);
     float *out = get_network_output_gpu(net);
-    printf("~~~~~~~~~~~~~~\n");
     //cuda_free(state.input);   // will be freed in the free_network()
     return out;
 }

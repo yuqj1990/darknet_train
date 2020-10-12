@@ -73,7 +73,7 @@ void check_error(cudaError_t status, const char *file, int line)
     {
         const char *s = cudaGetErrorString(status2);
         char buffer[256];
-        printf("\n CUDA Error Prev: %s file: %s, line: %d\n", s, file, line);
+        printf("\n CUDA Error Prev: %s, file: %s, line: %d\n", s, file, line);
         snprintf(buffer, 256, "CUDA Error Prev: %s", s);
 #ifdef WIN32
         getchar();

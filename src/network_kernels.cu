@@ -659,6 +659,7 @@ float *network_predict_gpu(network net, float *input)
 {
     if (net.gpu_index != cuda_get_device())
         cuda_set_device(net.gpu_index);
+    printf("----------\n");
     int size = get_network_input_size(net) * net.batch;
     network_state state;
     state.index = 0;
@@ -667,11 +668,14 @@ float *network_predict_gpu(network net, float *input)
     state.input = net.input_state_gpu;
     memcpy(net.input_pinned_cpu, input, size * sizeof(float));
     cuda_push_array(state.input, net.input_pinned_cpu, size);
+    printf("1111111111111111\n");
     state.truth = 0;
     state.train = 0;
     state.delta = 0;
     forward_network_gpu(net, state);
+    printf("2222222222222222\n");
     float *out = get_network_output_gpu(net);
+    printf("3333333333333333\n");
     //cuda_free(state.input);   // will be freed in the free_network()
     return out;
 }

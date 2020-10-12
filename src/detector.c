@@ -1012,7 +1012,6 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             char *id = basecfg(path);
             float *X = val_resized[t].data;
             network_predict(net, X);
-            printf("network_predict finished\n");
             int nboxes = 0;
             float hier_thresh = 0;
             detection *dets;
@@ -1022,13 +1021,11 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             else {
                 dets = get_network_boxes(&net, 1, 1, thresh, hier_thresh, 0, 0, &nboxes, letter_box);
             }
-            printf("get_network_boxes finished\n");
             //detection *dets = get_network_boxes(&net, val[t].w, val[t].h, thresh, hier_thresh, 0, 1, &nboxes, letter_box); // for letter_box=1
             if (nms) {
                 if (l.nms_kind == DEFAULT_NMS) do_nms_sort(dets, nboxes, l.classes, nms);
                 else diounms_sort(dets, nboxes, l.classes, nms, l.nms_kind, l.beta_nms);
             }
-            printf("do_nms_sort finished, nboxes: %d\n", nboxes);
             //if (nms) do_nms_obj(dets, nboxes, l.classes, nms);
 
             char labelpath[4096];
@@ -1139,13 +1136,10 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             //sprintf(buff, "%s\n", path);
             //if(errors_in_this_image > 0) fwrite(buff, sizeof(char), strlen(buff), reinforcement_fd);
             
-            printf("one iteration finished\n");
             free_detections(dets, nboxes);
-            printf("free_detections\n");
             free(id);
             free_image(val[t]);
             free_image(val_resized[t]);
-            printf("finish\n");
         }
     }
 

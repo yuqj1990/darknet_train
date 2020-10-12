@@ -103,7 +103,7 @@ void forward_network_gpu(network net, network_state state)
         }
 
         if(net.wait_stream)
-            cudaStreamSynchronize(get_cuda_stream());
+            CHECK_CUDA(cudaStreamSynchronize(get_cuda_stream()));
         state.input = l.output_gpu;
         //cudaDeviceSynchronize();
 

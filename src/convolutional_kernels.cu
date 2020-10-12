@@ -1113,7 +1113,7 @@ void assisted_excitation_forward_gpu(convolutional_layer l, network_state state)
     {
 #ifdef OPENCV
         cuda_pull_array(l.output_gpu, l.output, l.outputs * l.batch);
-        cudaStreamSynchronize(get_cuda_stream());
+        CHECK_CUDA(cudaStreamSynchronize(get_cuda_stream()));
         CHECK_CUDA(cudaPeekAtLastError());
 
         for (b = 0; b < l.batch; ++b)
@@ -1167,7 +1167,7 @@ void pull_convolutional_layer(convolutional_layer l)
         cuda_pull_array_async(l.v_gpu, l.v, l.nweights);
     }
     CHECK_CUDA(cudaPeekAtLastError());
-    cudaStreamSynchronize(get_cuda_stream());
+    CHECK_CUDA(cudaStreamSynchronize(get_cuda_stream()));
 }
 
 void push_convolutional_layer(convolutional_layer l)
